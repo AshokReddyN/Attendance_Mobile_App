@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Event, EventParticipant, NewEvent } from '../types';
+import { Event, EventParticipant, NewEvent, Participation } from '../types';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
@@ -32,6 +32,26 @@ const getEvents = async (): Promise<{ events: Event[] }> => {
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(error.response.data.message || 'An error occurred while fetching events.');
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
+const getTodaysEvent = async (): Promise<Event | null> => {
+  try {
+    const response = await apiClient.get<Event>('/events?today=true');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      // It's possible the server returns a 404 if no event is scheduled for today.
+      // We'll treat this as a "not found" and not an error.
+      if (error.response.status === 404) {
+        return null;
+      }
+      throw new Error(
+        error.response.data.message ||
+          "An error occurred while fetching today's event."
+      );
     }
     throw new Error('An unexpected error occurred. Please try again.');
   }
@@ -118,13 +138,47 @@ const getEventParticipants = async (
   }
 };
 
+const optInToEvent = async (eventId: string): Promise<void> => {
+  try {
+    await apiClient.post(`/events/${eventId}/optin`);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while opting in to the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
+const getMyParticipations = async (): Promise<Participation[]> => {
+  try {
+    const response = await apiClient.get<{ participations: Participation[] }>(
+      '/users/me/participations'
+    );
+    return response.data.participations;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while fetching your participation history.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
+  getTodaysEvent,
   createEvent,
   cloneEvent,
   updateEvent,
   closeEvent,
   getEventParticipants,
+  optInToEvent,
+  getMyParticipations,
 };
 
 export default eventService;

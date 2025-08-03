@@ -25,19 +25,17 @@ apiClient.interceptors.request.use(
   }
 );
 
-const getMonthlyPayments = async (
-  month: string
-): Promise<{ payments: MemberMonthlyPayment[] }> => {
+const getMyMonthlyPayments = async (): Promise<MemberMonthlyPayment[]> => {
   try {
     const response = await apiClient.get<{ payments: MemberMonthlyPayment[] }>(
-      `/payments/monthly?month=${month}`
+      '/payments/monthly?userId=me'
     );
-    return response.data;
+    return response.data.payments;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
         error.response.data.message ||
-          'An error occurred while fetching monthly payments.'
+          'An error occurred while fetching your monthly payments.'
       );
     }
     throw new Error('An unexpected error occurred. Please try again.');
@@ -71,7 +69,7 @@ const updatePaymentStatus = async (
 };
 
 const paymentService = {
-  getMonthlyPayments,
+  getMyMonthlyPayments,
   updatePaymentStatus,
 };
 
