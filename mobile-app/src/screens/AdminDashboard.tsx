@@ -112,9 +112,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoutButton: {
-    marginTop: 20,
-  },
 });
 
 export default AdminDashboard;
