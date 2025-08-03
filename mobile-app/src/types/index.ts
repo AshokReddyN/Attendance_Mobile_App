@@ -11,5 +11,5 @@ export type NewEvent = {
   name: string;
   price: number;
   date: string;
-  endTime: string;
+  endAt: string;
 };

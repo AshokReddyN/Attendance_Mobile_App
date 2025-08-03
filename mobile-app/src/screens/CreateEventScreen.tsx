@@ -40,7 +40,7 @@ const CreateEventScreen = () => {
       name: name.trim(),
       price: parseFloat(price),
       date: new Date().toISOString(), // Events are for today
-      endTime: endTime.toISOString(),
+      endAt: endTime.toISOString(),
     };
 
     try {
