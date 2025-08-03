@@ -25,9 +25,9 @@ apiClient.interceptors.request.use(
   }
 );
 
-const getEvents = async (): Promise<Event[]> => {
+const getEvents = async (): Promise<{ events: Event[] }> => {
   try {
-    const response = await apiClient.get<Event[]>('/events');
+    const response = await apiClient.get<{ events: Event[] }>('/events');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

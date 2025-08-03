@@ -35,9 +35,8 @@ const AdminDashboard = () => {
   const fetchEvents = async () => {
     try {
       setIsLoading(true);
-      const data = await eventService.getEvents();
-      console.log('Fetched events:', data);
-      setEvents(data);
+      const response = await eventService.getEvents();
+      setEvents(response.events);
     } catch (error) {
       Alert.alert(
         'Error',
