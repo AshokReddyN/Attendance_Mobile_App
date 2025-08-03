@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  Button,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 type AdminDashboardNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -22,6 +24,13 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation<AdminDashboardNavigationProp>();
+  const { logout } = useAuth();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => <Button onPress={logout} title="Logout" />,
+    });
+  }, [navigation, logout]);
 
   const fetchEvents = async () => {
     try {

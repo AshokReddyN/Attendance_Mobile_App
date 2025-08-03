@@ -1,17 +1,29 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
+
+type MemberDashboardNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'MemberDashboard'
+>;
 
 const MemberDashboard = () => {
   const { logout } = useAuth();
+  const navigation = useNavigation<MemberDashboardNavigationProp>();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => <Button onPress={logout} title="Logout" />,
+    });
+  }, [navigation, logout]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, Member!</Text>
       <Text>This is your dashboard.</Text>
-      <View style={styles.logoutButton}>
-        <Button title="Logout" onPress={logout} color="#ff3b30" />
-      </View>
     </View>
   );
 };
