@@ -68,7 +68,7 @@ const CreateEventScreen = () => {
 
     try {
       if (isCloning) {
-        await eventService.cloneEvent(eventData);
+        await eventService.createEvent(eventData);
         Alert.alert('Success', 'Event cloned successfully.');
       } else {
         await eventService.createEvent(eventData);
