@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import tokenService from '../services/tokenService';
-import { AuthResponse } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -20,32 +19,28 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
-  const [initialRoute, setInitialRoute] = useState<'Splash' | 'Login' | 'AdminDashboard' | 'MemberDashboard'>('Splash');
+  const { authData, loading } = useAuth();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const authData = await tokenService.getAuthData();
-      if (authData) {
-        setInitialRoute(authData.user.role === 'admin' ? 'AdminDashboard' : 'MemberDashboard');
-      } else {
-        setInitialRoute('Login');
-      }
-    };
-
-    // A small delay to make the splash screen visible for a moment
-    setTimeout(checkAuth, 1000);
-  }, []);
-
-  if (initialRoute === 'Splash') {
+  if (loading) {
     return <SplashScreen />;
   }
 
   return (
-    <Stack.Navigator initialRouteName={initialRoute}>
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Registration" component={RegistrationScreen} />
-      <Stack.Screen name="MemberDashboard" component={MemberDashboard} />
-      <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
+    <Stack.Navigator>
+      {authData ? (
+        // User is logged in, show the correct dashboard
+        authData.user.role === 'admin' ? (
+          <Stack.Screen name="AdminDashboard" component={AdminDashboard} options={{ title: 'Admin Dashboard' }} />
+        ) : (
+          <Stack.Screen name="MemberDashboard" component={MemberDashboard} options={{ title: 'Member Dashboard' }} />
+        )
+      ) : (
+        // User is not logged in, show the auth flow
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Registration" component={RegistrationScreen} options={{ title: 'Create Account' }} />
+        </>
+      )}
     </Stack.Navigator>
   );
 };

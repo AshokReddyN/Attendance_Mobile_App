@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/RootNavigator';
 import authService from '../services/authService';
-import tokenService from '../services/tokenService';
+import { useAuth } from '../context/AuthContext';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,8 +21,8 @@ const LoginScreen = () => {
     setError(null);
     try {
       const authResponse = await authService.login({ email, password });
-      await tokenService.saveAuthData(authResponse);
-      navigation.replace(authResponse.user.role === 'admin' ? 'AdminDashboard' : 'MemberDashboard');
+      await login(authResponse);
+      // Navigation will be handled automatically by the RootNavigator
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(message);
