@@ -100,6 +100,12 @@ const MemberDashboard = () => {
           onPress={() => navigation.navigate('MyParticipation')}
         />
       </View>
+      <View style={styles.navigationButton}>
+        <Button
+          title="View My Payments"
+          onPress={() => navigation.navigate('Payments')}
+        />
+      </View>
     </View>
   );
 };

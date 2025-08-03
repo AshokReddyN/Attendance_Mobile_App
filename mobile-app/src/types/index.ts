@@ -19,6 +19,7 @@ export type NewEvent = {
 export interface MemberMonthlyPayment {
   memberId: string;
   name: string;
+  month: string;
   totalOwed: number;
   status: 'paid' | 'unpaid';
 }
