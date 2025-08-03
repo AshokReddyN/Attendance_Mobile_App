@@ -21,3 +21,9 @@ export interface MemberMonthlyPayment {
   totalOwed: number;
   status: 'paid' | 'unpaid';
 }
+
+export interface EventParticipant {
+  memberId: string;
+  name: string;
+  optInAt: string;
+}

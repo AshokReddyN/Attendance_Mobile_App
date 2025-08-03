@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Event, NewEvent } from '../types';
+import { Event, EventParticipant, NewEvent } from '../types';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
@@ -99,12 +99,32 @@ const closeEvent = async (id: string): Promise<Event> => {
   }
 };
 
+const getEventParticipants = async (
+  eventId: string
+): Promise<{ participants: EventParticipant[] }> => {
+  try {
+    const response = await apiClient.get<{ participants: EventParticipant[] }>(
+      `/events/${eventId}/participants`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while fetching event participants.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
   createEvent,
   cloneEvent,
   updateEvent,
   closeEvent,
+  getEventParticipants,
 };
 
 export default eventService;
