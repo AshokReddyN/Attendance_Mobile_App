@@ -36,6 +36,7 @@ const AdminDashboard = () => {
     try {
       setIsLoading(true);
       const data = await eventService.getEvents();
+      console.log('Fetched events:', data);
       setEvents(data);
     } catch (error) {
       Alert.alert(
