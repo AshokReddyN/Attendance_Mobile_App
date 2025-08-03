@@ -12,7 +12,7 @@ export type RootStackParamList = {
   MemberDashboard: undefined;
   AdminDashboard: undefined;
   EventDetails: { event: Event };
-  CreateEvent: undefined;
+  CreateEvent: { event?: Event };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

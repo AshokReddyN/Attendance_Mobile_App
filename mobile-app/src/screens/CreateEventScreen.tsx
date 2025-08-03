@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,11 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import eventService from '../services/eventService';
@@ -19,14 +23,33 @@ type CreateEventNavigationProp = StackNavigationProp<
   'CreateEvent'
 >;
 
+type CreateEventRouteProp = RouteProp<RootStackParamList, 'CreateEvent'>;
+
 const CreateEventScreen = () => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [endTime, setEndTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const navigation = useNavigation<CreateEventNavigationProp>();
+  const route = useRoute<CreateEventRouteProp>();
 
-  const handleCreateEvent = async () => {
+  const isCloning = route.params?.event !== undefined;
+
+  useEffect(() => {
+    if (isCloning && route.params?.event) {
+      const { event } = route.params;
+      setName(event.name);
+      setPrice(event.price.toString());
+      const originalEndTime = new Date(event.endAt);
+      const newEndTime = new Date();
+      newEndTime.setHours(originalEndTime.getHours());
+      newEndTime.setMinutes(originalEndTime.getMinutes());
+      newEndTime.setSeconds(originalEndTime.getSeconds());
+      setEndTime(newEndTime);
+    }
+  }, [isCloning, route.params]);
+
+  const handleSubmit = async () => {
     if (!name.trim() || !price.trim()) {
       Alert.alert('Validation Error', 'Event name and price are required.');
       return;
@@ -39,14 +62,19 @@ const CreateEventScreen = () => {
     const eventData = {
       name: name.trim(),
       price: parseFloat(price),
-      date: new Date().toISOString(), // Events are for today
+      date: new Date().toISOString(),
       endAt: endTime.toISOString(),
     };
 
     try {
-      await eventService.createEvent(eventData);
-      Alert.alert('Success', 'Event created successfully.');
-      navigation.goBack(); // Go back to the AdminDashboard
+      if (isCloning) {
+        await eventService.createEvent(eventData);
+        Alert.alert('Success', 'Event cloned successfully.');
+      } else {
+        await eventService.createEvent(eventData);
+        Alert.alert('Success', 'Event created successfully.');
+      }
+      navigation.goBack();
     } catch (error) {
       Alert.alert(
         'API Error',
@@ -65,7 +93,9 @@ const CreateEventScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create New Event</Text>
+      <Text style={styles.title}>
+        {isCloning ? 'Clone Event' : 'Create New Event'}
+      </Text>
       <TextInput
         style={styles.input}
         placeholder="Event Name"
@@ -95,8 +125,10 @@ const CreateEventScreen = () => {
           onChange={onTimeChange}
         />
       )}
-      <TouchableOpacity style={styles.button} onPress={handleCreateEvent}>
-        <Text style={styles.buttonText}>Create Event</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>
+          {isCloning ? 'Clone Event' : 'Create Event'}
+        </Text>
       </TouchableOpacity>
     </View>
   );

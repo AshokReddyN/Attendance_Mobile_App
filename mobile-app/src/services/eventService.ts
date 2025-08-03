@@ -51,9 +51,25 @@ const createEvent = async (eventData: NewEvent): Promise<Event> => {
   }
 };
 
+const cloneEvent = async (eventData: NewEvent): Promise<Event> => {
+  try {
+    const response = await apiClient.post<Event>('/events/clone', eventData);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while cloning the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
   createEvent,
+  cloneEvent,
 };
 
 export default eventService;
