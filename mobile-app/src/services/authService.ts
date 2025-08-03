@@ -18,10 +18,15 @@ export interface RegistrationData {
   role: 'member' | 'admin';
 }
 
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
 export interface AuthResponse {
   token: string;
   // You might also get user data back, which you can add here
-  // user: { id: string; name: string; email: string; role: string; }
+  user: { id: string; name: string; email: string; role: 'member' | 'admin' };
 }
 
 const register = async (userData: RegistrationData): Promise<AuthResponse> => {
@@ -40,8 +45,21 @@ const register = async (userData: RegistrationData): Promise<AuthResponse> => {
   }
 };
 
+const login = async (credentials: LoginData): Promise<AuthResponse> => {
+  try {
+    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || 'Invalid email or password.');
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const authService = {
   register,
+  login,
 };
 
 export default authService;

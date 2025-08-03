@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import LoginScreen from '../screens/LoginScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
 import MemberDashboard from '../screens/MemberDashboard';
 import AdminDashboard from '../screens/AdminDashboard';
@@ -7,6 +8,7 @@ import AdminDashboard from '../screens/AdminDashboard';
 // Define the types for the route parameters for each screen in the stack.
 // This provides type safety for navigation and route props.
 export type RootStackParamList = {
+  Login: undefined;
   Registration: undefined; // This screen does not receive any parameters.
   MemberDashboard: undefined;
   AdminDashboard: undefined;
@@ -19,7 +21,14 @@ const Stack = createStackNavigator<RootStackParamList>();
 const AppNavigator = () => {
   return (
     // The Stack.Navigator component contains all the screens of the navigator.
-    <Stack.Navigator initialRouteName="Registration">
+    <Stack.Navigator initialRouteName="Login">
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{
+          title: 'Login', // Set the header title for this screen.
+        }}
+      />
       <Stack.Screen
         name="Registration"
         component={RegistrationScreen}
