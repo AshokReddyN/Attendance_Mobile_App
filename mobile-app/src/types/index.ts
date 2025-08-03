@@ -14,3 +14,16 @@ export type NewEvent = {
   date: string;
   endAt: string;
 };
+
+export interface MemberMonthlyPayment {
+  memberId: string;
+  name: string;
+  totalOwed: number;
+  status: 'paid' | 'unpaid';
+}
+
+export interface EventParticipant {
+  memberId: string;
+  name: string;
+  optInAt: string;
+}

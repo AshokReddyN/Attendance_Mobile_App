@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
+import { EventParticipant } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 type EventDetailsRouteProp = RouteProp<RootStackParamList, 'EventDetails'>;
 type EventDetailsNavigationProp = StackNavigationProp<
@@ -16,6 +18,28 @@ const EventDetails = () => {
   const navigation = useNavigation<EventDetailsNavigationProp>();
   const { event } = route.params;
   const [eventStatus, setEventStatus] = useState(event.status);
+  const [participants, setParticipants] = useState<EventParticipant[]>([]);
+  const { authData } = useAuth();
+  const isAdmin = authData?.user.role === 'admin';
+
+  useEffect(() => {
+    if (isAdmin) {
+      const fetchParticipants = async () => {
+        try {
+          const response = await eventService.getEventParticipants(event.id);
+          setParticipants(response.participants);
+        } catch (error) {
+          Alert.alert(
+            'Error',
+            error instanceof Error
+              ? error.message
+              : 'An unknown error occurred.'
+          );
+        }
+      };
+      fetchParticipants();
+    }
+  }, [event.id, isAdmin]);
 
   const handleClone = () => {
     navigation.navigate('CreateEvent', { event });
@@ -79,6 +103,21 @@ const EventDetails = () => {
           </>
         )}
       </View>
+      {isAdmin && (
+        <View style={styles.participantsContainer}>
+          <Text style={styles.participantsTitle}>Participants</Text>
+          <FlatList
+            data={participants}
+            keyExtractor={(item) => item.memberId}
+            renderItem={({ item }) => (
+              <View style={styles.participantItem}>
+                <Text>{item.name}</Text>
+                <Text>{new Date(item.optInAt).toLocaleString()}</Text>
+              </View>
+            )}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -137,6 +176,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  participantsContainer: {
+    marginTop: 20,
+    width: '100%',
+  },
+  participantsTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  participantItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
 });
 
