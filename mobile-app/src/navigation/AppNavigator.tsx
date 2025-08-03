@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import MemberDashboard from '../screens/MemberDashboard';
 import AdminDashboard from '../screens/AdminDashboard';
 import CreateEventScreen from '../screens/CreateEventScreen';
+import EditEventScreen from '../screens/EditEventScreen';
 import EventDetails from '../screens/EventDetails';
 import { Event } from '../types';
 
@@ -13,6 +14,7 @@ export type RootStackParamList = {
   AdminDashboard: undefined;
   EventDetails: { event: Event };
   CreateEvent: { event?: Event };
+  EditEvent: { event: Event };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -36,6 +38,11 @@ const AppNavigator = () => {
             name="CreateEvent"
             component={CreateEventScreen}
             options={{ title: 'Create Event' }}
+          />
+          <Stack.Screen
+            name="EditEvent"
+            component={EditEventScreen}
+            options={{ title: 'Edit Event' }}
           />
         </>
       ) : (

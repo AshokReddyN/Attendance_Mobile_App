@@ -66,10 +66,45 @@ const cloneEvent = async (eventData: NewEvent): Promise<Event> => {
   }
 };
 
+const updateEvent = async (
+  id: string,
+  eventData: Partial<NewEvent>
+): Promise<Event> => {
+  try {
+    const response = await apiClient.put<Event>(`/events/${id}`, eventData);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while updating the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
+const closeEvent = async (id: string): Promise<Event> => {
+  try {
+    const response = await apiClient.post<Event>(`/events/${id}/close`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while closing the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
   createEvent,
   cloneEvent,
+  updateEvent,
+  closeEvent,
 };
 
 export default eventService;
