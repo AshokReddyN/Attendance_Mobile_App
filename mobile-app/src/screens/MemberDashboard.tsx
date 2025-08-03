@@ -94,6 +94,12 @@ const MemberDashboard = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, Member!</Text>
       {renderEventDetails()}
+      <View style={styles.navigationButton}>
+        <Button
+          title="View My Participation History"
+          onPress={() => navigation.navigate('MyParticipation')}
+        />
+      </View>
     </View>
   );
 };
@@ -137,6 +143,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logoutButton: {
+    marginTop: 20,
+  },
+  navigationButton: {
     marginTop: 20,
   },
 });

@@ -6,6 +6,7 @@ import AdminDashboard from '../screens/AdminDashboard';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import EditEventScreen from '../screens/EditEventScreen';
 import EventDetails from '../screens/EventDetails';
+import MyParticipationScreen from '../screens/MyParticipationScreen';
 import { Event } from '../types';
 
 // Define the types for the route parameters for each screen in the stack.
@@ -15,6 +16,7 @@ export type RootStackParamList = {
   EventDetails: { event: Event };
   CreateEvent: { event?: Event };
   EditEvent: { event: Event };
+  MyParticipation: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -46,11 +48,18 @@ const AppNavigator = () => {
           />
         </>
       ) : (
-        <Stack.Screen
-          name="MemberDashboard"
-          component={MemberDashboard}
-          options={{ title: 'Member Dashboard' }}
-        />
+        <>
+          <Stack.Screen
+            name="MemberDashboard"
+            component={MemberDashboard}
+            options={{ title: 'Member Dashboard' }}
+          />
+          <Stack.Screen
+            name="MyParticipation"
+            component={MyParticipationScreen}
+            options={{ title: 'My Participation' }}
+          />
+        </>
       )}
       <Stack.Screen
         name="EventDetails"

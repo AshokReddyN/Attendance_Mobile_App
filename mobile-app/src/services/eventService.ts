@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Event, EventParticipant, NewEvent } from '../types';
+import { Event, EventParticipant, NewEvent, Participation } from '../types';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
@@ -152,6 +152,23 @@ const optInToEvent = async (eventId: string): Promise<void> => {
   }
 };
 
+const getMyParticipations = async (): Promise<Participation[]> => {
+  try {
+    const response = await apiClient.get<{ participations: Participation[] }>(
+      '/users/me/participations'
+    );
+    return response.data.participations;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while fetching your participation history.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
   getTodaysEvent,
@@ -161,6 +178,7 @@ const eventService = {
   closeEvent,
   getEventParticipants,
   optInToEvent,
+  getMyParticipations,
 };
 
 export default eventService;

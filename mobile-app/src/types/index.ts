@@ -28,3 +28,11 @@ export interface EventParticipant {
   name: string;
   optInAt: string;
 }
+
+export interface Participation {
+  id: string;
+  eventName: string;
+  eventDate: string;
+  eventPrice: number;
+  optInTime: string;
+}
