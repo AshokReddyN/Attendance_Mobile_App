@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from 'react';
 import { AuthResponse } from '../services/authService';
 import tokenService from '../services/tokenService';
 
@@ -42,15 +48,15 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     loadAuthData();
   }, []);
 
-  const login = async (data: AuthResponse) => {
+  const login = useCallback(async (data: AuthResponse) => {
     setAuthData(data);
     await tokenService.saveAuthData(data);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await tokenService.removeAuthData();
     setAuthData(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ authData, loading, login, logout }}>
