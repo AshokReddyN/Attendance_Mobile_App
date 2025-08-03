@@ -37,6 +37,26 @@ const getEvents = async (): Promise<{ events: Event[] }> => {
   }
 };
 
+const getTodaysEvent = async (): Promise<Event | null> => {
+  try {
+    const response = await apiClient.get<Event>('/events?today=true');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      // It's possible the server returns a 404 if no event is scheduled for today.
+      // We'll treat this as a "not found" and not an error.
+      if (error.response.status === 404) {
+        return null;
+      }
+      throw new Error(
+        error.response.data.message ||
+          "An error occurred while fetching today's event."
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const createEvent = async (eventData: NewEvent): Promise<Event> => {
   try {
     const response = await apiClient.post<Event>('/events', eventData);
@@ -120,6 +140,7 @@ const getEventParticipants = async (
 
 const eventService = {
   getEvents,
+  getTodaysEvent,
   createEvent,
   cloneEvent,
   updateEvent,

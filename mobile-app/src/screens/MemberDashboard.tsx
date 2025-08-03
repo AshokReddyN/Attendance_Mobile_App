@@ -1,9 +1,11 @@
-import React, { useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import React, { useLayoutEffect, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Button, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import eventService from '../services/eventService';
+import { Event } from '../types';
 
 type MemberDashboardNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -13,6 +15,9 @@ type MemberDashboardNavigationProp = StackNavigationProp<
 const MemberDashboard = () => {
   const { logout } = useAuth();
   const navigation = useNavigation<MemberDashboardNavigationProp>();
+  const [todaysEvent, setTodaysEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -20,10 +25,53 @@ const MemberDashboard = () => {
     });
   }, [navigation, logout]);
 
+  useEffect(() => {
+    const fetchTodaysEvent = async () => {
+      try {
+        setIsLoading(true);
+        const event = await eventService.getTodaysEvent();
+        setTodaysEvent(event);
+        setError(null);
+      } catch (e) {
+        setError('Failed to fetch today\'s event.');
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTodaysEvent();
+  }, []);
+
+  const renderEventDetails = () => {
+    if (isLoading) {
+      return <ActivityIndicator testID="activity-indicator" size="large" color="#0000ff" />;
+    }
+
+    if (error) {
+      return <Text style={styles.errorText}>{error}</Text>;
+    }
+
+    if (!todaysEvent) {
+      return <Text style={styles.noEventText}>No active event today.</Text>;
+    }
+
+    return (
+      <View style={styles.eventContainer}>
+        <Text style={styles.eventTitle}>Today's Active Event</Text>
+        <Text style={styles.detailText}>Name: {todaysEvent.name}</Text>
+        <Text style={styles.detailText}>Price: ${todaysEvent.price.toFixed(2)}</Text>
+        <Text style={styles.detailText}>
+          Ends at: {new Date(todaysEvent.endAt).toLocaleTimeString()}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, Member!</Text>
-      <Text>This is your dashboard.</Text>
+      {renderEventDetails()}
     </View>
   );
 };
@@ -38,7 +86,33 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  eventContainer: {
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+  },
+  eventTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  detailText: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  noEventText: {
+    fontSize: 18,
+    color: 'gray',
+    marginTop: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+    marginTop: 20,
   },
   logoutButton: {
     marginTop: 20,

@@ -1,6 +1,6 @@
 export interface Event {
   endAt: string | number | Date;
-  id: string;
+  id:string;
   name:string;
   date: string;
   price: number;
