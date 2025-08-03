@@ -4,6 +4,7 @@ import LoginScreen from '../screens/LoginScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
 import MemberDashboard from '../screens/MemberDashboard';
 import AdminDashboard from '../screens/AdminDashboard';
+import CreateEventScreen from '../screens/CreateEventScreen';
 import EventDetails from '../screens/EventDetails';
 import { Event } from '../types';
 
@@ -15,6 +16,7 @@ export type RootStackParamList = {
   MemberDashboard: undefined;
   AdminDashboard: undefined;
   EventDetails: { event: Event };
+  CreateEvent: undefined;
   // Future screens can be added here, e.g., Login: undefined, Home: { userId: string }
 };
 
@@ -53,6 +55,11 @@ const AppNavigator = () => {
         name="EventDetails"
         component={EventDetails}
         options={{ title: 'Event Details' }}
+      />
+      <Stack.Screen
+        name="CreateEvent"
+        component={CreateEventScreen}
+        options={{ title: 'Create Event' }}
       />
     </Stack.Navigator>
   );

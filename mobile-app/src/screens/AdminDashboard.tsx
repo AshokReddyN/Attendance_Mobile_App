@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
@@ -23,26 +23,26 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation<AdminDashboardNavigationProp>();
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const data = await eventService.getEvents();
-        setEvents(data);
-      } catch (error) {
-        Alert.alert(
-          'Error',
-          error instanceof Error
-            ? error.message
-            : 'An unknown error occurred.'
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const data = await eventService.getEvents();
+      setEvents(data);
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'An unknown error occurred.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchEvents();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [])
+  );
 
   const renderEventItem = ({ item }: { item: Event }) => (
     <TouchableOpacity
@@ -67,7 +67,15 @@ const AdminDashboard = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>All Events</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>All Events</Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate('CreateEvent')}
+        >
+          <Text style={styles.createButtonText}>+ Create</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={events}
         renderItem={renderEventItem}
@@ -83,11 +91,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
+  },
+  createButton: {
+    backgroundColor: '#007BFF',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   listContainer: {
     paddingBottom: 20,
