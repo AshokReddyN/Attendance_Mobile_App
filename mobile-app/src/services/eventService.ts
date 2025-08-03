@@ -138,6 +138,20 @@ const getEventParticipants = async (
   }
 };
 
+const optInToEvent = async (eventId: string): Promise<void> => {
+  try {
+    await apiClient.post(`/events/${eventId}/optin`);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while opting in to the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
   getTodaysEvent,
@@ -146,6 +160,7 @@ const eventService = {
   updateEvent,
   closeEvent,
   getEventParticipants,
+  optInToEvent,
 };
 
 export default eventService;

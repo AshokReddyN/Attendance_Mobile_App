@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Button, ActivityIndicator, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -18,6 +18,7 @@ const MemberDashboard = () => {
   const [todaysEvent, setTodaysEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOptingIn, setIsOptingIn] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -43,6 +44,22 @@ const MemberDashboard = () => {
     fetchTodaysEvent();
   }, []);
 
+  const handleOptIn = async () => {
+    if (!todaysEvent) return;
+
+    setIsOptingIn(true);
+    try {
+      await eventService.optInToEvent(todaysEvent.id);
+      setTodaysEvent({ ...todaysEvent, isOptedIn: true });
+      Alert.alert('Success', 'You have successfully opted in to the event.');
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      Alert.alert('Opt-In Failed', errorMessage);
+    } finally {
+      setIsOptingIn(false);
+    }
+  };
+
   const renderEventDetails = () => {
     if (isLoading) {
       return <ActivityIndicator testID="activity-indicator" size="large" color="#0000ff" />;
@@ -64,6 +81,11 @@ const MemberDashboard = () => {
         <Text style={styles.detailText}>
           Ends at: {new Date(todaysEvent.endAt).toLocaleTimeString()}
         </Text>
+        <Button
+          title={todaysEvent.isOptedIn ? 'Opted-In' : 'Opt-In'}
+          onPress={handleOptIn}
+          disabled={todaysEvent.isOptedIn || isOptingIn}
+        />
       </View>
     );
   };

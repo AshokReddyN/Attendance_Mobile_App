@@ -6,6 +6,7 @@ export interface Event {
   price: number;
   optInCount: number;
   status: 'open' | 'closed';
+  isOptedIn?: boolean;
 }
 
 export type NewEvent = {

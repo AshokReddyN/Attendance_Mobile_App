@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import MemberDashboard from '../MemberDashboard';
 import eventService from '../../services/eventService';
 import { NavigationContainer } from '@react-navigation/native';
@@ -59,6 +60,49 @@ describe('MemberDashboard', () => {
 
     await waitFor(() => {
       expect(getByText('Failed to fetch today\'s event.')).toBeTruthy();
+    });
+  });
+  it('should call optInToEvent and update UI on successful opt-in', async () => {
+    const mockEvent = {
+      id: '1',
+      name: 'Test Event',
+      price: 10,
+      endAt: new Date().toISOString(),
+      isOptedIn: false,
+    };
+    (eventService.getTodaysEvent as jest.Mock).mockResolvedValue(mockEvent);
+    (eventService.optInToEvent as jest.Mock).mockResolvedValue(undefined);
+    const { getByText } = render(<TestNavigator />);
+
+    await waitFor(() => expect(getByText('Opt-In')).toBeTruthy());
+
+    fireEvent.press(getByText('Opt-In'));
+
+    await waitFor(() => {
+      expect(eventService.optInToEvent).toHaveBeenCalledWith('1');
+      expect(getByText('Opted-In')).toBeTruthy();
+    });
+  });
+
+  it('should show an alert on opt-in failure', async () => {
+    const mockEvent = {
+      id: '1',
+      name: 'Test Event',
+      price: 10,
+      endAt: new Date().toISOString(),
+      isOptedIn: false,
+    };
+    (eventService.getTodaysEvent as jest.Mock).mockResolvedValue(mockEvent);
+    (eventService.optInToEvent as jest.Mock).mockRejectedValue(new Error('Opt-in failed'));
+    jest.spyOn(Alert, 'alert');
+    const { getByText } = render(<TestNavigator />);
+
+    await waitFor(() => expect(getByText('Opt-In')).toBeTruthy());
+
+    fireEvent.press(getByText('Opt-In'));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith('Opt-In Failed', 'Opt-in failed');
     });
   });
 });
