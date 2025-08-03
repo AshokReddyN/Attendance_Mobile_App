@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Event, NewEvent } from '../types';
+import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
 const API_URL = 'http://192.168.29.139:5004/api'; // For Android emulator
@@ -10,6 +11,19 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+apiClient.interceptors.request.use(
+  async (config) => {
+    const authData = await tokenService.getAuthData();
+    if (authData) {
+      config.headers.Authorization = `Bearer ${authData.token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const getEvents = async (): Promise<Event[]> => {
   try {
