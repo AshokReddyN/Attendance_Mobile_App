@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState, useEffect } from 'react';
+import React, { useLayoutEffect, useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Button, ActivityIndicator, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -20,11 +20,15 @@ const MemberDashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [isOptingIn, setIsOptingIn] = useState(false);
 
+  const headerRight = useCallback(() => {
+    return <Button onPress={logout} title="Logout" />;
+  }, [logout]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => <Button onPress={logout} title="Logout" />,
+      headerRight,
     });
-  }, [navigation, logout]);
+  }, [navigation, headerRight]);
 
   useEffect(() => {
     const fetchTodaysEvent = async () => {
