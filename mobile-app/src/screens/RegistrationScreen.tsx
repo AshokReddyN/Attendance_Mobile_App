@@ -23,7 +23,7 @@ const RegistrationScreen = () => {
     const userData = { name, email, password, role };
     try {
       const authResponse = await authService.register(userData);
-      await tokenService.saveToken(authResponse.token);
+      await tokenService.saveAuthData(authResponse);
       navigation.replace(role === 'admin' ? 'AdminDashboard' : 'MemberDashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';

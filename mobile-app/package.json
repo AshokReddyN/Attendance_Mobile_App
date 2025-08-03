@@ -6,26 +6,32 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest"
   },
   "dependencies": {
+    "@react-native-masked-view/masked-view": "*",
+    "@react-navigation/native": "*",
+    "@react-navigation/stack": "*",
+    "axios": "*",
     "expo": "~53.0.20",
+    "expo-secure-store": "*",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.5",
-    "@react-navigation/native": "*",
-    "@react-navigation/stack": "*",
-    "react-native-screens": "*",
-    "react-native-safe-area-context": "*",
-    "axios": "*",
-    "expo-secure-store": "*",
     "react-native-gesture-handler": "*",
-    "@react-native-masked-view/masked-view": "*"
+    "react-native-safe-area-context": "*",
+    "react-native-screens": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "typescript": "~5.8.3",
-    "@types/react": "~19.0.10"
+    "@testing-library/react-native": "^13.2.2",
+    "@types/jest": "^30.0.0",
+    "@types/react": "~19.0.10",
+    "jest": "^29.7.0",
+    "jest-expo": "^53.0.9",
+    "react-test-renderer": "19.0.0",
+    "typescript": "~5.8.3"
   },
   "private": true
 }

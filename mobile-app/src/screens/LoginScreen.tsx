@@ -20,7 +20,7 @@ const LoginScreen = () => {
     setError(null);
     try {
       const authResponse = await authService.login({ email, password });
-      await tokenService.saveToken(authResponse.token);
+      await tokenService.saveAuthData(authResponse);
       navigation.replace(authResponse.user.role === 'admin' ? 'AdminDashboard' : 'MemberDashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';
