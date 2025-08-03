@@ -1,4 +1,5 @@
 export interface Event {
+  endAt: string | number | Date;
   id: string;
   name:string;
   date: string;

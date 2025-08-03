@@ -59,7 +59,7 @@ const AdminDashboard = () => {
       onPress={() => navigation.navigate('EventDetails', { event: item })}
     >
       <Text style={styles.eventName}>{item.name}</Text>
-      <Text>Date: {new Date(item.date).toLocaleDateString()}</Text>
+      <Text>Date: {new Date(item.endAt).toLocaleDateString()}</Text>
       <Text>Price: ${item.price.toFixed(2)}</Text>
       <Text>Opt-ins: {item.optInCount}</Text>
       <Text>Status: {item.status}</Text>
