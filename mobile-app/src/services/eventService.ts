@@ -84,11 +84,27 @@ const updateEvent = async (
   }
 };
 
+const closeEvent = async (id: string): Promise<Event> => {
+  try {
+    const response = await apiClient.post<Event>(`/events/${id}/close`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while closing the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
 const eventService = {
   getEvents,
   createEvent,
   cloneEvent,
   updateEvent,
+  closeEvent,
 };
 
 export default eventService;
