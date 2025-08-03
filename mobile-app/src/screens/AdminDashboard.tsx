@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  Button,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 type AdminDashboardNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -22,27 +24,34 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation<AdminDashboardNavigationProp>();
+  const { logout } = useAuth();
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setIsLoading(true);
-        const data = await eventService.getEvents();
-        setEvents(data);
-      } catch (error) {
-        Alert.alert(
-          'Error',
-          error instanceof Error
-            ? error.message
-            : 'An unknown error occurred.'
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => <Button onPress={logout} title="Logout" />,
+    });
+  }, [navigation, logout]);
 
-    fetchEvents();
-  }, []);
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      const response = await eventService.getEvents();
+      setEvents(response.events);
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'An unknown error occurred.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [])
+  );
 
   const renderEventItem = ({ item }: { item: Event }) => (
     <TouchableOpacity
@@ -50,7 +59,7 @@ const AdminDashboard = () => {
       onPress={() => navigation.navigate('EventDetails', { event: item })}
     >
       <Text style={styles.eventName}>{item.name}</Text>
-      <Text>Date: {new Date(item.date).toLocaleDateString()}</Text>
+      <Text>Date: {new Date(item.endAt).toLocaleDateString()}</Text>
       <Text>Price: ${item.price.toFixed(2)}</Text>
       <Text>Opt-ins: {item.optInCount}</Text>
       <Text>Status: {item.status}</Text>
@@ -67,7 +76,15 @@ const AdminDashboard = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>All Events</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>All Events</Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate('CreateEvent')}
+        >
+          <Text style={styles.createButtonText}>+ Create</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={events}
         renderItem={renderEventItem}
@@ -83,11 +100,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
+  },
+  createButton: {
+    backgroundColor: '#007BFF',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   listContainer: {
     paddingBottom: 20,

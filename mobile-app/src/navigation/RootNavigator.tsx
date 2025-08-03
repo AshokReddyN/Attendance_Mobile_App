@@ -5,18 +5,30 @@ import { useAuth } from '../context/AuthContext';
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
-import MemberDashboard from '../screens/MemberDashboard';
-import AdminDashboard from '../screens/AdminDashboard';
+import AppNavigator from './AppNavigator'; // Import the main app navigator
 
 export type RootStackParamList = {
-  Login: undefined;
-  Registration: undefined;
-  MemberDashboard: undefined;
-  AdminDashboard: undefined;
   Splash: undefined;
+  Auth: undefined; // Represents the authentication flow (Login, Registration)
+  App: undefined; // Represents the main application flow
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
+
+const AuthNavigator = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Login"
+      component={LoginScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Registration"
+      component={RegistrationScreen}
+      options={{ title: 'Create Account' }}
+    />
+  </Stack.Navigator>
+);
 
 const RootNavigator = () => {
   const { authData, loading } = useAuth();
@@ -26,20 +38,13 @@ const RootNavigator = () => {
   }
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {authData ? (
-        // User is logged in, show the correct dashboard
-        authData.user.role === 'admin' ? (
-          <Stack.Screen name="AdminDashboard" component={AdminDashboard} options={{ title: 'Admin Dashboard' }} />
-        ) : (
-          <Stack.Screen name="MemberDashboard" component={MemberDashboard} options={{ title: 'Member Dashboard' }} />
-        )
+        // User is logged in, show the main app navigator
+        <Stack.Screen name="App" component={AppNavigator} />
       ) : (
         // User is not logged in, show the auth flow
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Registration" component={RegistrationScreen} options={{ title: 'Create Account' }} />
-        </>
+        <Stack.Screen name="Auth" component={AuthNavigator} />
       )}
     </Stack.Navigator>
   );
