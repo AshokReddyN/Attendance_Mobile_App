@@ -13,7 +13,6 @@ const apiClient = axios.create({
 export interface RegistrationData {
   name: string;
   email: string;
-  phone: string;
   password: string;
   role: 'member' | 'admin';
 }

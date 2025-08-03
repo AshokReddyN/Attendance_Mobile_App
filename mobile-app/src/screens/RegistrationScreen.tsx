@@ -12,7 +12,6 @@ const RegistrationScreen = () => {
   const navigation = useNavigation<RegistrationScreenNavigationProp>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'member' | 'admin'>('member');
   const [loading, setLoading] = useState(false);
@@ -21,7 +20,7 @@ const RegistrationScreen = () => {
   const handleRegister = async () => {
     setLoading(true);
     setError(null);
-    const userData = { name, email, phone, password, role };
+    const userData = { name, email, password, role };
     try {
       const authResponse = await authService.register(userData);
       await tokenService.saveToken(authResponse.token);
@@ -52,13 +51,6 @@ const RegistrationScreen = () => {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
       />
       <TextInput
         style={styles.input}
