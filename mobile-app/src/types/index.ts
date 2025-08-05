@@ -31,9 +31,9 @@ export interface EventParticipant {
 }
 
 export interface Participation {
-  id: string;
+  eventId: string;
   eventName: string;
   eventDate: string;
-  eventPrice: number;
-  optInTime: string;
+  price: number;
+  optedInAt: string;
 }

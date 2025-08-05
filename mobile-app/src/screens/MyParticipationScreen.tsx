@@ -49,13 +49,13 @@ const MyParticipationScreen = () => {
       ) : (
         <FlatList
           data={participations}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.eventId}
           renderItem={({ item }) => (
             <View style={styles.itemContainer}>
               <Text style={styles.eventName}>{item.eventName}</Text>
               <Text>Date: {new Date(item.eventDate).toLocaleDateString()}</Text>
-              <Text>Price: ${item.eventPrice.toFixed(2)}</Text>
-              <Text>Opted-in at: {new Date(item.optInTime).toLocaleString()}</Text>
+              <Text>Price: {typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : 'N/A'}</Text>
+              <Text>Opted-in at: {new Date(item.optedInAt).toLocaleString()}</Text>
             </View>
           )}
         />
