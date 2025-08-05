@@ -40,7 +40,7 @@ const getEvents = async (): Promise<{ events: Event[] }> => {
 const getTodaysEvent = async (): Promise<Event | null> => {
   try {
     const response = await apiClient.get<{ events: Event[] }>('/events?today=true');
-    if (response.data.events && response.data.events.length > 0) {
+    if (response.data && response.data.events && response.data.events.length > 0) {
       return response.data.events[0];
     }
     return null;
