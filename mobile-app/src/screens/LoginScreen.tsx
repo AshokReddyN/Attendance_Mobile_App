@@ -24,6 +24,7 @@ const LoginScreen = () => {
       await login(authResponse);
       // Navigation will be handled automatically by the RootNavigator
     } catch (err) {
+      console.error('Login failed:', err);
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(message);
       console.error('Login failed:', err);

@@ -25,13 +25,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-const getMyMonthlyPayments = async (): Promise<MemberMonthlyPayment[]> => {
+const getMyMonthlyPayments = async (month:string): Promise<MemberMonthlyPayment[]> => {
   try {
     const response = await apiClient.get<{ payments: MemberMonthlyPayment[] }>(
-      '/payments/monthly?userId=me'
+      '/payments/monthly?userId=me&month=' + month
     );
     return response.data.payments;
   } catch (error) {
+    console.error('Error fetching monthly payments:', error);
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
         error.response.data.message ||
