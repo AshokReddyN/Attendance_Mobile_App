@@ -21,7 +21,7 @@ const AdminPayments = () => {
     try {
       setIsLoading(true);
       // Corrected the function call to getMyMonthlyPayments and removed the argument
-      const response = await paymentService.getMyMonthlyPayments();
+      const response = await paymentService.getMyMonthlyPayments(month);
       // The response is the array of payments, so no need for .payments
       setPayments(response);
     } catch (error) {

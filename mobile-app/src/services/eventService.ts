@@ -128,6 +128,7 @@ const getEventParticipants = async (
     );
     return response.data;
   } catch (error) {
+    console.error('Error fetching event participants:', error); 
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
         error.response.data.message ||
