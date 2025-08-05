@@ -20,8 +20,10 @@ const AdminPayments = () => {
   const fetchPayments = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await paymentService.getMonthlyPayments(month);
-      setPayments(response.payments);
+      // Corrected the function call to getMyMonthlyPayments and removed the argument
+      const response = await paymentService.getMyMonthlyPayments();
+      // The response is the array of payments, so no need for .payments
+      setPayments(response);
     } catch (error) {
       Alert.alert(
         'Error',
@@ -30,7 +32,7 @@ const AdminPayments = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [month]);
+  }, []); // Removed month from dependency array as it's not used
 
   useEffect(() => {
     fetchPayments();

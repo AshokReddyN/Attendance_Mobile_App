@@ -15,6 +15,7 @@
     "@react-navigation/material-top-tabs": "^7.3.5",
     "@react-navigation/native": "*",
     "@react-navigation/stack": "*",
+    "@testing-library/jest-native": "^5.4.3",
     "axios": "*",
     "expo": "~53.0.20",
     "expo-secure-store": "*",
