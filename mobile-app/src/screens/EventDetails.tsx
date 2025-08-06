@@ -21,7 +21,7 @@ const EventDetails = () => {
   const [participants, setParticipants] = useState<EventParticipant[]>([]);
   const { authData } = useAuth();
   const isAdmin = authData?.user.role === 'admin';
-
+console.log('participants received:', participants);
   useEffect(() => {
     if (isAdmin) {
       const fetchParticipants = async () => {
@@ -112,7 +112,7 @@ const EventDetails = () => {
             renderItem={({ item }) => (
               <View style={styles.participantItem}>
                 <Text>{item.name}</Text>
-                <Text>{new Date(item.optInAt).toLocaleString()}</Text>
+                <Text>{new Date(item.optedInAt).toLocaleString()}</Text>
               </View>
             )}
           />
