@@ -31,6 +31,11 @@ class CrashDetectionService {
   private currentScreen: string | null = null;
   private crashReports: CrashReport[] = [];
   private isInitialized = false;
+  private errorCount = 0;
+  private lastErrorTime = 0;
+  private readonly ERROR_THRESHOLD = 5;
+  private readonly ERROR_WINDOW_MS = 1000; // 1 second
+  private isHandlingError = false;
 
   public static getInstance(): CrashDetectionService {
     if (!CrashDetectionService.instance) {
@@ -75,11 +80,45 @@ class CrashDetectionService {
   }
 
   private async handleJSError(error: Error, isFatal: boolean): Promise<void> {
+    // Prevent reentrancy
+    if (this.isHandlingError) {
+      console.warn('Already handling an error, skipping to prevent infinite loop');
+      return;
+    }
+
+    this.isHandlingError = true;
+
+    try {
+      // Circuit breaker pattern - prevent too many errors in a short time
+      const now = Date.now();
+      if (now - this.lastErrorTime < this.ERROR_WINDOW_MS) {
+        this.errorCount++;
+        if (this.errorCount > this.ERROR_THRESHOLD) {
+          console.warn('Circuit breaker activated - too many errors in short time, skipping error handling');
+          return;
+        }
+      } else {
+        this.errorCount = 1;
+      }
+      this.lastErrorTime = now;
+
+      // Prevent infinite loops by checking if we're already handling a crash report error
+      if (this.currentScreen === 'CrashReports' && !error?.message) {
+        console.warn('Skipping undefined error in CrashReports to prevent infinite loop');
+        return;
+      }
+
+      // Ensure we have a valid error object
+      if (!error || (!error.message && !error.stack)) {
+        console.warn('Skipping invalid error object:', error);
+        return;
+      }
+
     const crashReport: CrashReport = {
       id: this.generateId(),
       timestamp: new Date().toISOString(),
       type: 'js_error',
-      error: error.message || 'Unknown JavaScript error',
+      error: error.message || error.toString() || 'Unknown JavaScript error',
       stackTrace: error.stack,
       userRole: this.currentUser?.role,
       userId: this.currentUser?.id,
@@ -89,19 +128,27 @@ class CrashDetectionService {
       resolved: false,
       metadata: {
         isFatal,
-        errorName: error.name,
+        errorName: error.name || 'Error',
       },
     };
 
-    await this.saveCrashReport(crashReport);
-    
-    // Log to console for development
-    console.error('JS Error captured:', {
-      error: error.message,
-      screen: this.currentScreen,
-      user: this.currentUser?.role,
-      isFatal,
-    });
+           try {
+         await this.saveCrashReport(crashReport);
+         
+         // Log to console for development
+         console.error('JS Error captured:', {
+           error: error.message || error.toString(),
+           screen: this.currentScreen,
+           user: this.currentUser?.role,
+           isFatal,
+         });
+       } catch (saveError) {
+         // Don't let saving errors create more errors
+         console.warn('Failed to save crash report, but not reporting this error to prevent loops:', saveError);
+       }
+     } finally {
+       this.isHandlingError = false;
+     }
   }
 
   private async handleNativeError(errorString: string): Promise<void> {
@@ -204,27 +251,44 @@ class CrashDetectionService {
         this.crashReports = this.crashReports.slice(-100);
       }
 
-      // Save to AsyncStorage
-      await AsyncStorage.setItem(
+      // Save to AsyncStorage with timeout to prevent hanging
+      const savePromise = AsyncStorage.setItem(
         'crashReports',
         JSON.stringify(this.crashReports)
       );
+      
+      // Timeout after 5 seconds to prevent blocking
+      await Promise.race([
+        savePromise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('AsyncStorage timeout')), 5000)
+        )
+      ]);
 
       // You could also send to a remote crash reporting service here
       // await this.sendToRemoteService(crashReport);
     } catch (error) {
-      console.error('Failed to save crash report:', error);
+      // Don't throw here to prevent infinite loops
+      console.warn('Failed to save crash report:', error);
     }
   }
 
   private async loadCrashReports(): Promise<void> {
     try {
-      const stored = await AsyncStorage.getItem('crashReports');
+      // Add timeout to prevent hanging on load
+      const loadPromise = AsyncStorage.getItem('crashReports');
+      const stored = await Promise.race([
+        loadPromise,
+        new Promise<string | null>((_, reject) => 
+          setTimeout(() => reject(new Error('AsyncStorage load timeout')), 5000)
+        )
+      ]);
+      
       if (stored) {
         this.crashReports = JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Failed to load crash reports:', error);
+      console.warn('Failed to load crash reports, starting with empty array:', error);
       this.crashReports = [];
     }
   }

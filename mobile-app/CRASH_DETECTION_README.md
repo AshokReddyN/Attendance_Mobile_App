@@ -184,6 +184,35 @@ interface CrashReport {
 
 ## Testing the System
 
+### Safe Testing with Utilities
+
+Use the provided test utilities for safe crash testing:
+
+```typescript
+import testCrashDetection from '../utils/crashTestUtils';
+
+const TestButton = () => (
+  <Button 
+    title="Test JS Error" 
+    onPress={testCrashDetection.testJSError}
+  />
+);
+
+const TestAsyncButton = () => (
+  <Button 
+    title="Test Async Error" 
+    onPress={testCrashDetection.testAsyncError}
+  />
+);
+
+const TestManualButton = () => (
+  <Button 
+    title="Test Manual Report" 
+    onPress={testCrashDetection.testManualReport}
+  />
+);
+```
+
 ### 1. Test JavaScript Errors
 
 Add a test button to throw an error:
@@ -285,6 +314,11 @@ const SpecializedErrorBoundary: React.FC<{children: ReactNode}> = ({ children })
 1. **Crashes Not Appearing**: Ensure `CrashReportingProvider` is properly wrapped around your app
 2. **Missing Screen Context**: Verify `useScreenTracking` is called at the top of screen components
 3. **Storage Issues**: Check AsyncStorage permissions and available storage space
+4. **Infinite Error Loops**: The system includes multiple safeguards:
+   - Circuit breaker pattern prevents too many errors in short time
+   - Reentrancy protection prevents nested error handling
+   - Special handling for CrashReports screen to prevent loops
+   - Timeout protection for AsyncStorage operations
 
 ### Debug Mode
 

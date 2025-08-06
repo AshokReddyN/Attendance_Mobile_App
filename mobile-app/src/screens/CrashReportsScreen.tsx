@@ -33,14 +33,47 @@ const CrashReportsScreen = () => {
   const loadCrashData = useCallback(async () => {
     setLoading(true);
     try {
-      const [reports, stats] = await Promise.all([
-        getCrashReports(),
-        getCrashStats(),
-      ]);
-      setCrashReports(reports);
-      setCrashStats(stats);
+      // Load data with timeout and error handling
+      const reportsPromise = getCrashReports().catch((err) => {
+        console.warn('Failed to load crash reports:', err);
+        return [];
+      });
+      
+      const statsPromise = getCrashStats().catch((err) => {
+        console.warn('Failed to load crash stats:', err);
+        return {
+          totalCrashes: 0,
+          resolvedCrashes: 0,
+          adminCrashes: 0,
+          memberCrashes: 0,
+          crashesByScreen: {},
+          recentCrashes: [],
+        };
+      });
+
+      const [reports, stats] = await Promise.all([reportsPromise, statsPromise]);
+      
+      setCrashReports(Array.isArray(reports) ? reports : []);
+      setCrashStats(stats || {
+        totalCrashes: 0,
+        resolvedCrashes: 0,
+        adminCrashes: 0,
+        memberCrashes: 0,
+        crashesByScreen: {},
+        recentCrashes: [],
+      });
     } catch (error) {
-      console.error('Failed to load crash data:', error);
+      console.warn('Failed to load crash data:', error);
+      // Set safe defaults
+      setCrashReports([]);
+      setCrashStats({
+        totalCrashes: 0,
+        resolvedCrashes: 0,
+        adminCrashes: 0,
+        memberCrashes: 0,
+        crashesByScreen: {},
+        recentCrashes: [],
+      });
     } finally {
       setLoading(false);
     }
@@ -50,7 +83,7 @@ const CrashReportsScreen = () => {
     loadCrashData();
   }, [loadCrashData]);
 
-  const filteredReports = crashReports.filter(report => {
+  const filteredReports = (crashReports || []).filter(report => {
     if (filterType === 'unresolved') {
       return !report.resolved;
     }
@@ -136,29 +169,29 @@ const CrashReportsScreen = () => {
         <Text style={styles.statsTitle}>Crash Statistics</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{crashStats.totalCrashes}</Text>
+            <Text style={styles.statNumber}>{crashStats?.totalCrashes || 0}</Text>
             <Text style={styles.statLabel}>Total Crashes</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: '#27ae60' }]}>
-              {crashStats.resolvedCrashes}
+              {crashStats?.resolvedCrashes || 0}
             </Text>
             <Text style={styles.statLabel}>Resolved</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: '#e74c3c' }]}>
-              {crashStats.totalCrashes - crashStats.resolvedCrashes}
+              {(crashStats?.totalCrashes || 0) - (crashStats?.resolvedCrashes || 0)}
             </Text>
             <Text style={styles.statLabel}>Unresolved</Text>
           </View>
         </View>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{crashStats.adminCrashes}</Text>
+            <Text style={styles.statNumber}>{crashStats?.adminCrashes || 0}</Text>
             <Text style={styles.statLabel}>Admin View</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{crashStats.memberCrashes}</Text>
+            <Text style={styles.statNumber}>{crashStats?.memberCrashes || 0}</Text>
             <Text style={styles.statLabel}>Member View</Text>
           </View>
         </View>
