@@ -28,6 +28,7 @@ export interface MemberMonthlyPayment {
 }
 
 export interface EventParticipant {
+  optedInAt: string | number | Date;
   memberId: string;
   name: string;
   optInAt: string;
