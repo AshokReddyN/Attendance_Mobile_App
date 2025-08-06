@@ -5,12 +5,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { useScreenTracking, useSafeAsyncOperation } from '../context/CrashReportingContext';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen = () => {
+  useScreenTracking('Login');
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const { login } = useAuth();
+  const safeAsyncOperation = useSafeAsyncOperation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

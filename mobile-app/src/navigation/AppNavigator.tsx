@@ -8,6 +8,8 @@ import EditEventScreen from '../screens/EditEventScreen';
 import EventDetails from '../screens/EventDetails';
 import MyParticipationScreen from '../screens/MyParticipationScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
+import CrashReportsScreen from '../screens/CrashReportsScreen';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { Event } from '../types';
 
 // Define the types for the route parameters for each screen in the stack.
@@ -19,6 +21,7 @@ export type RootStackParamList = {
   EditEvent: { event: Event };
   MyParticipation: undefined;
   Payments: undefined;
+  CrashReports: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -35,44 +38,89 @@ const AppNavigator = () => {
         <>
           <Stack.Screen
             name="AdminDashboard"
-            component={AdminDashboard}
             options={{ title: 'Admin Dashboard' }}
-          />
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <AdminDashboard {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
           <Stack.Screen
             name="CreateEvent"
-            component={CreateEventScreen}
             options={{ title: 'Create Event' }}
-          />
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <CreateEventScreen {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
           <Stack.Screen
             name="EditEvent"
-            component={EditEventScreen}
             options={{ title: 'Edit Event' }}
-          />
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <EditEventScreen {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name="CrashReports"
+            options={{ title: 'Crash Reports' }}
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <CrashReportsScreen {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
         </>
       ) : (
         <>
           <Stack.Screen
             name="MemberDashboard"
-            component={MemberDashboard}
             options={{ title: 'Member Dashboard' }}
-          />
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <MemberDashboard {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
           <Stack.Screen
             name="MyParticipation"
-            component={MyParticipationScreen}
             options={{ title: 'My Participation' }}
-          />
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <MyParticipationScreen {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
           <Stack.Screen
             name="Payments"
-            component={PaymentsScreen}
             options={{ title: 'My Payments' }}
-          />
+          >
+            {(props) => (
+              <ErrorBoundary>
+                <PaymentsScreen {...props} />
+              </ErrorBoundary>
+            )}
+          </Stack.Screen>
         </>
       )}
       <Stack.Screen
         name="EventDetails"
-        component={EventDetails}
         options={{ title: 'Event Details' }}
-      />
+      >
+        {(props) => (
+          <ErrorBoundary>
+            <EventDetails {...props} />
+          </ErrorBoundary>
+        )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 };

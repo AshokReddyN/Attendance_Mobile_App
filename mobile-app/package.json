@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/datetimepicker": "^8.4.3",
     "@react-native-masked-view/masked-view": "*",
     "@react-navigation/material-top-tabs": "^7.3.5",
@@ -22,6 +23,7 @@
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.5",
+    "react-native-exception-handler": "^2.10.10",
     "react-native-gesture-handler": "*",
     "react-native-pager-view": "^6.8.1",
     "react-native-safe-area-context": "*",

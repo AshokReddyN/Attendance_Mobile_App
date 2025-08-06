@@ -6,6 +6,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
+import { useScreenTracking, useSafeAsyncOperation } from '../context/CrashReportingContext';
 
 type MemberDashboardNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -13,8 +14,10 @@ type MemberDashboardNavigationProp = StackNavigationProp<
 >;
 
 const MemberDashboard = () => {
+  useScreenTracking('MemberDashboard');
   const { logout } = useAuth();
   const navigation = useNavigation<MemberDashboardNavigationProp>();
+  const safeAsyncOperation = useSafeAsyncOperation();
   const [todaysEvent, setTodaysEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
