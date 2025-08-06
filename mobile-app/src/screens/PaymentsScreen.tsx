@@ -12,11 +12,17 @@ const PaymentsScreen = () => {
     const fetchPayments = async () => {
       try {
         setIsLoading(true);
-        const fetchedPayments = await paymentService.getMyMonthlyPayments();
+        const today = new Date();
+        const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const fetchedPayments = await paymentService.getMyMonthlyPayments(month);
         setPayments(fetchedPayments);
         setError(null);
-      } catch (e) {
-        setError('Failed to fetch your monthly payments.');
+      } catch (e: any) {
+        if (e.message.includes('403')) {
+          setError('You are not authorized to view these payments.');
+        } else {
+          setError('Failed to fetch your monthly payments.');
+        }
         console.error(e);
       } finally {
         setIsLoading(false);
