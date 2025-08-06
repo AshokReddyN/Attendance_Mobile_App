@@ -76,7 +76,10 @@ class CrashDetectionService {
   }
 
   public setCurrentScreen(screenName: string): void {
-    this.currentScreen = screenName;
+    // Prevent unnecessary updates and potential loops
+    if (this.currentScreen !== screenName && screenName && typeof screenName === 'string') {
+      this.currentScreen = screenName;
+    }
   }
 
   private async handleJSError(error: Error, isFatal: boolean): Promise<void> {

@@ -8,7 +8,7 @@ import { Button, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { useScreenTracking } from '../context/CrashReportingContext';
+import crashDetectionService from '../services/crashDetectionService';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -19,7 +19,6 @@ type AdminDashboardNavigationProp = StackNavigationProp<
 
 
 const AdminDashboard = () => {
-    useScreenTracking('AdminDashboard');
     const { logout } = useAuth();
     const navigation = useNavigation<AdminDashboardNavigationProp>();
 
@@ -27,6 +26,9 @@ const AdminDashboard = () => {
         navigation.setOptions({
           headerRight: () => <Button onPress={logout} title="Logout" />,
         });
+        
+        // Set screen name directly without hooks to prevent infinite loops
+        crashDetectionService.setCurrentScreen('AdminDashboard');
       }, [navigation, logout]);
 
 

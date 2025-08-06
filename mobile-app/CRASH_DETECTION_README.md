@@ -84,7 +84,25 @@ The crash detection system is automatically active throughout the app:
 
 ### Screen Tracking
 
-Screens automatically track their names using the `useScreenTracking` hook:
+#### Recommended Approach (Direct Service Call)
+
+For preventing infinite loops and better performance, use direct service calls:
+
+```typescript
+import crashDetectionService from '../services/crashDetectionService';
+
+const MyScreen = () => {
+  useLayoutEffect(() => {
+    // Set screen name directly
+    crashDetectionService.setCurrentScreen('MyScreen');
+  }, []);
+  // Component logic...
+};
+```
+
+#### Alternative Hook Approach (Use with Caution)
+
+If you prefer hooks, use the `useScreenTracking` hook with improved safeguards:
 
 ```typescript
 import { useScreenTracking } from '../context/CrashReportingContext';
@@ -94,6 +112,8 @@ const MyScreen = () => {
   // Component logic...
 };
 ```
+
+**Note**: The hook approach includes debouncing and infinite loop protection, but direct service calls are more reliable.
 
 ### Safe Async Operations
 
@@ -319,6 +339,10 @@ const SpecializedErrorBoundary: React.FC<{children: ReactNode}> = ({ children })
    - Reentrancy protection prevents nested error handling
    - Special handling for CrashReports screen to prevent loops
    - Timeout protection for AsyncStorage operations
+5. **useScreenTracking Infinite Loops**: If experiencing infinite re-renders:
+   - Use direct service calls instead: `crashDetectionService.setCurrentScreen('ScreenName')`
+   - Place calls in `useLayoutEffect` or `useEffect` with empty dependency array
+   - Avoid the `useScreenTracking` hook if experiencing issues
 
 ### Debug Mode
 

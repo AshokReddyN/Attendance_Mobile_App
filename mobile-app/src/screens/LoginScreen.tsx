@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
-import { useScreenTracking, useSafeAsyncOperation } from '../context/CrashReportingContext';
+import { useSafeAsyncOperation } from '../context/CrashReportingContext';
+import crashDetectionService from '../services/crashDetectionService';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen = () => {
-  useScreenTracking('Login');
+  // Temporarily disabled screen tracking to prevent infinite loop
+  // useScreenTracking('Login');
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const { login } = useAuth();
   const safeAsyncOperation = useSafeAsyncOperation();
@@ -18,6 +20,11 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Set screen name directly without hooks to prevent infinite loops
+  useEffect(() => {
+    crashDetectionService.setCurrentScreen('Login');
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);

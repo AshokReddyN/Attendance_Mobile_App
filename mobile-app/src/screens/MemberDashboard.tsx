@@ -6,7 +6,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
-import { useScreenTracking, useSafeAsyncOperation } from '../context/CrashReportingContext';
+import { useSafeAsyncOperation } from '../context/CrashReportingContext';
+import crashDetectionService from '../services/crashDetectionService';
 
 type MemberDashboardNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -14,7 +15,8 @@ type MemberDashboardNavigationProp = StackNavigationProp<
 >;
 
 const MemberDashboard = () => {
-  useScreenTracking('MemberDashboard');
+  // Temporarily disabled screen tracking to prevent infinite loop
+  // useScreenTracking('MemberDashboard');
   const { logout } = useAuth();
   const navigation = useNavigation<MemberDashboardNavigationProp>();
   const safeAsyncOperation = useSafeAsyncOperation();
@@ -31,6 +33,9 @@ const MemberDashboard = () => {
     navigation.setOptions({
       headerRight,
     });
+    
+    // Set screen name directly without hooks
+    crashDetectionService.setCurrentScreen('MemberDashboard');
   }, [navigation, headerRight]);
 
   useEffect(() => {

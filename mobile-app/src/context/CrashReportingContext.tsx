@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useCallback, ReactNode, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import crashDetectionService, { CrashReport, CrashStats } from '../services/crashDetectionService';
 
@@ -130,7 +130,7 @@ export const CrashReportingProvider: React.FC<CrashReportingProviderProps> = ({ 
     }
   }, []);
 
-  const value: CrashReportingContextType = {
+  const value: CrashReportingContextType = useMemo(() => ({
     reportError,
     setCurrentScreen,
     getCrashReports,
@@ -138,7 +138,7 @@ export const CrashReportingProvider: React.FC<CrashReportingProviderProps> = ({ 
     markCrashResolved,
     clearResolvedCrashes,
     clearAllCrashes,
-  };
+  }), [reportError, setCurrentScreen, getCrashReports, getCrashStats, markCrashResolved, clearResolvedCrashes, clearAllCrashes]);
 
   return (
     <CrashReportingContext.Provider value={value}>
@@ -150,10 +150,35 @@ export const CrashReportingProvider: React.FC<CrashReportingProviderProps> = ({ 
 // Custom hook for screen tracking
 export const useScreenTracking = (screenName: string) => {
   const { setCurrentScreen } = useCrashReporting();
+  const lastScreenRef = useRef<string>('');
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setCurrentScreen(screenName);
-  }, [screenName, setCurrentScreen]);
+    // Clear any pending timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Defensive check to prevent unnecessary calls and infinite loops
+    if (screenName && typeof screenName === 'string' && screenName !== lastScreenRef.current) {
+      // Debounce the call to prevent rapid-fire updates
+      timeoutRef.current = setTimeout(() => {
+        lastScreenRef.current = screenName;
+        try {
+          setCurrentScreen(screenName);
+        } catch (error) {
+          console.warn('Failed to set current screen:', error);
+        }
+      }, 10); // Small delay to debounce
+    }
+
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [screenName]); // Removed setCurrentScreen from deps since it's memoized
 };
 
 // Custom hook for safe async operations with error reporting
