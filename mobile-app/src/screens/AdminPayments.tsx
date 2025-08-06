@@ -39,12 +39,12 @@ const AdminPayments = () => {
   }, [fetchPayments]);
 
   const handleUpdateStatus = async (
-    memberId: string,
-    currentStatus: 'paid' | 'unpaid'
+    userId: string,
+    currentStatus: 'Paid' | 'Unpaid'
   ) => {
     try {
-      const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
-      await paymentService.updatePaymentStatus(memberId, month, newStatus);
+      const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
+      await paymentService.updatePaymentStatus(userId, month, newStatus);
       // Refresh the list to show the updated status
       fetchPayments();
     } catch (error) {
@@ -67,12 +67,12 @@ const AdminPayments = () => {
       <TouchableOpacity
         style={[
           styles.statusButton,
-          item.status === 'paid' ? styles.paidButton : styles.unpaidButton,
+          item.status === 'Paid' ? styles.paidButton : styles.unpaidButton,
         ]}
-        onPress={() => handleUpdateStatus(item.memberId, item.status)}
+        onPress={() => handleUpdateStatus(item.userId, item.status)}
       >
         <Text style={styles.statusButtonText}>
-          Mark as {item.status === 'paid' ? 'Unpaid' : 'Paid'}
+          Mark as {item.status === 'Paid' ? 'Unpaid' : 'Paid'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -98,7 +98,7 @@ const AdminPayments = () => {
         <FlatList
           data={payments}
           renderItem={renderPaymentItem}
-          keyExtractor={(item) => item.memberId + item.month}
+          keyExtractor={(item) => item.userId + item.month}
           contentContainerStyle={styles.listContainer}
         />
       )}

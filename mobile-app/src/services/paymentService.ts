@@ -46,19 +46,20 @@ const getMyMonthlyPayments = async (month:string): Promise<MemberMonthlyPayment[
 const updatePaymentStatus = async (
   memberId: string,
   month: string,
-  status: 'paid' | 'unpaid'
+  status: 'Paid' | 'Unpaid'
 ): Promise<{ payment: MemberMonthlyPayment }> => {
   try {
     const response = await apiClient.post<{ payment: MemberMonthlyPayment }>(
       '/payments/monthly/status',
       {
-        memberId,
+        userId:memberId,
         month,
-        status,
+        paymentStatus:status,
       }
     );
     return response.data;
   } catch (error) {
+    console.error('Error updating payment status:', error);
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
         error.response.data.message ||

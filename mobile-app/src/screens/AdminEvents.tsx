@@ -52,7 +52,7 @@ const AdminEvents = () => {
     >
       <Text style={styles.eventName}>{item.name}</Text>
       <Text>Date: {new Date(item.endAt).toLocaleDateString()}</Text>
-      <Text>Price: ${item.price.toFixed(2)}</Text>
+      <Text>Price: ₹{item.price.toFixed(2)}</Text>
       <Text>Opt-ins: {item.optInCount}</Text>
       <Text>Status: {item.status}</Text>
     </TouchableOpacity>

@@ -36,7 +36,7 @@ describe('AdminPaymentsScreen', () => {
 
   it('should display payments when data is available', async () => {
     const mockPayments = [
-      { memberId: '1', name: 'Test User 1', totalOwed: 100, status: 'paid' },
+      { memberId: '1', name: 'Test User 1', totalOwed: 100, status: 'Paid' },
       { memberId: '2', name: 'Test User 2', totalOwed: 120, status: 'unpaid' },
     ];
     (paymentService.getMyMonthlyPayments as jest.Mock).mockResolvedValue(mockPayments);
