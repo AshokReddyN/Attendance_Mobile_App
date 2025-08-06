@@ -6,9 +6,10 @@ This document describes the comprehensive crash detection, tracking, and resolut
 
 ### ✅ Automatic Crash Detection
 - **JavaScript Errors**: Catches unhandled JavaScript exceptions
-- **Native Crashes**: Detects native iOS/Android crashes
+- **Native Crashes**: Detects native iOS/Android crashes (when available)
 - **Unhandled Promise Rejections**: Captures async operation failures
 - **React Component Errors**: Error boundaries catch component render errors
+- **Expo Compatible**: Works in both Expo managed and bare workflows
 
 ### ✅ Comprehensive Tracking
 - **User Context**: Associates crashes with admin/member roles
@@ -33,9 +34,20 @@ npm install
 
 The following dependencies have been added to `package.json`:
 - `@react-native-async-storage/async-storage`: For local crash report storage
-- `react-native-exception-handler`: For native crash detection
+- `react-native-exception-handler`: For native crash detection (optional - Expo compatible)
 
 ### 2. Platform-Specific Setup
+
+#### Expo Managed Workflow
+No additional setup required. The system automatically detects Expo environment and uses compatible error handling.
+
+#### React Native CLI / Ejected Projects
+For enhanced native crash detection, install the optional dependency:
+```bash
+npm install react-native-exception-handler
+# For iOS
+cd ios && pod install
+```
 
 #### iOS
 No additional setup required for Expo projects.
@@ -334,12 +346,16 @@ const SpecializedErrorBoundary: React.FC<{children: ReactNode}> = ({ children })
 1. **Crashes Not Appearing**: Ensure `CrashReportingProvider` is properly wrapped around your app
 2. **Missing Screen Context**: Verify `useScreenTracking` is called at the top of screen components
 3. **Storage Issues**: Check AsyncStorage permissions and available storage space
-4. **Infinite Error Loops**: The system includes multiple safeguards:
+4. **Native Exception Handler Error**: This is normal in Expo managed workflow:
+   - Error: `Cannot read property 'setHandlerforNativeException' of null`
+   - Solution: The system automatically falls back to compatible error handling
+   - For enhanced native crash detection, use React Native CLI or eject from Expo
+5. **Infinite Error Loops**: The system includes multiple safeguards:
    - Circuit breaker pattern prevents too many errors in short time
    - Reentrancy protection prevents nested error handling
    - Special handling for CrashReports screen to prevent loops
    - Timeout protection for AsyncStorage operations
-5. **useScreenTracking Infinite Loops**: If experiencing infinite re-renders:
+6. **useScreenTracking Infinite Loops**: If experiencing infinite re-renders:
    - Use direct service calls instead: `crashDetectionService.setCurrentScreen('ScreenName')`
    - Place calls in `useLayoutEffect` or `useEffect` with empty dependency array
    - Avoid the `useScreenTracking` hook if experiencing issues

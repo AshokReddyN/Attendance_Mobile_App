@@ -1,5 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setJSExceptionHandler, setNativeExceptionHandler } from 'react-native-exception-handler';
+
+// Conditionally import native exception handler for Expo compatibility
+let setJSExceptionHandler: any = null;
+let setNativeExceptionHandler: any = null;
+
+try {
+  const exceptionHandler = require('react-native-exception-handler');
+  setJSExceptionHandler = exceptionHandler.setJSExceptionHandler;
+  setNativeExceptionHandler = exceptionHandler.setNativeExceptionHandler;
+} catch (error) {
+  console.warn('react-native-exception-handler not available, using fallback mode');
+}
 
 export interface CrashReport {
   id: string;
@@ -51,23 +62,38 @@ class CrashDetectionService {
       // Load existing crash reports from storage
       await this.loadCrashReports();
 
-      // Set up JS exception handler
-      setJSExceptionHandler((error, isFatal) => {
-        this.handleJSError(error, isFatal);
-      }, true);
+      // Set up JS exception handler if available
+      if (setJSExceptionHandler) {
+        setJSExceptionHandler((error, isFatal) => {
+          this.handleJSError(error, isFatal);
+        }, true);
+        console.log('Native JS exception handler enabled');
+      } else {
+        console.warn('Native JS exception handler not available, using fallback');
+      }
 
-      // Set up native exception handler
-      setNativeExceptionHandler((errorString) => {
-        this.handleNativeError(errorString);
-      });
+      // Set up native exception handler if available
+      if (setNativeExceptionHandler) {
+        setNativeExceptionHandler((errorString) => {
+          this.handleNativeError(errorString);
+        });
+        console.log('Native exception handler enabled');
+      } else {
+        console.warn('Native exception handler not available in this environment');
+      }
 
-      // Set up unhandled promise rejection handler
+      // Set up unhandled promise rejection handler (always available)
       this.setupUnhandledPromiseHandler();
+
+      // Set up global error handler fallback for Expo
+      this.setupGlobalErrorHandler();
 
       this.isInitialized = true;
       console.log('CrashDetectionService initialized successfully');
     } catch (error) {
       console.error('Failed to initialize CrashDetectionService:', error);
+      // Still mark as initialized to prevent repeated attempts
+      this.isInitialized = true;
     }
   }
 
@@ -193,6 +219,28 @@ class CrashDetectionService {
     };
   }
 
+  private setupGlobalErrorHandler(): void {
+    // Fallback global error handler for environments without native exception handling
+    if (!setJSExceptionHandler && typeof ErrorUtils !== 'undefined') {
+      try {
+        const originalErrorHandler = ErrorUtils.getGlobalHandler();
+        
+        ErrorUtils.setGlobalHandler((error, isFatal) => {
+          this.handleJSError(error, isFatal || false);
+          
+          // Call original handler if it exists
+          if (originalErrorHandler) {
+            originalErrorHandler(error, isFatal);
+          }
+        });
+        
+        console.log('Global error handler fallback enabled');
+      } catch (error) {
+        console.warn('Failed to set up global error handler fallback:', error);
+      }
+    }
+  }
+
   private async handleUnhandledPromise(reason: any): Promise<void> {
     const errorMessage = reason instanceof Error ? reason.message : String(reason);
     const stackTrace = reason instanceof Error ? reason.stack : undefined;
@@ -228,7 +276,7 @@ class CrashDetectionService {
       id: this.generateId(),
       timestamp: new Date().toISOString(),
       type: 'js_error',
-      error: error.message || 'Manual error report',
+      error: error.message || error.toString() || 'Manual error report',
       stackTrace: error.stack,
       userRole: this.currentUser?.role,
       userId: this.currentUser?.id,
@@ -239,6 +287,7 @@ class CrashDetectionService {
       metadata: {
         manual: true,
         context,
+        expoEnvironment: !setJSExceptionHandler, // Track if we're in Expo
       },
     };
 
