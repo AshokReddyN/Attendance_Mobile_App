@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface Event {
   endAt: string | number | Date;
   id:string;
@@ -17,10 +19,11 @@ export type NewEvent = {
 };
 
 export interface MemberMonthlyPayment {
-  memberId: string;
-  name: string;
+  userName: string;
+  paymentStatus: string;
+  totalAmount: number;
+  userId: string;
   month: string;
-  totalOwed: number;
   status: 'paid' | 'unpaid';
 }
 

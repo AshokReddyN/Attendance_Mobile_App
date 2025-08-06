@@ -60,9 +60,9 @@ const AdminPayments = () => {
   const renderPaymentItem = ({ item }: { item: MemberMonthlyPayment }) => (
     <View style={styles.paymentItem}>
       <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>{item.name}</Text>
-        <Text>Owed: {typeof item.totalOwed === 'number' ? `$${item.totalOwed.toFixed(2)}` : 'N/A'}</Text>
-        <Text>Status: {item.status}</Text>
+        <Text style={styles.memberName}>{item.userName}</Text>
+        <Text>Owed: {typeof item.totalAmount === 'number' ? `₹${item.totalAmount.toFixed(2)}` : 'N/A'}</Text>
+        <Text>Status: {item.paymentStatus}</Text>
       </View>
       <TouchableOpacity
         style={[
