@@ -54,7 +54,7 @@ const MyParticipationScreen = () => {
             <View style={styles.itemContainer}>
               <Text style={styles.eventName}>{item.eventName}</Text>
               <Text>Date: {new Date(item.eventDate).toLocaleDateString()}</Text>
-              <Text>Price: {typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : 'N/A'}</Text>
+              <Text>Price: {typeof item.price === 'number' ? `₹${item.price.toFixed(2)}` : 'N/A'}</Text>
               <Text>Opted-in at: {new Date(item.optedInAt).toLocaleString()}</Text>
             </View>
           )}

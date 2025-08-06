@@ -41,7 +41,7 @@ describe('MemberDashboard', () => {
     await waitFor(() => {
       expect(getByText("Today's Active Event")).toBeTruthy();
       expect(getByText('Name: Test Event')).toBeTruthy();
-      expect(getByText('Price: $10.00')).toBeTruthy();
+      expect(getByText('Price: ₹10.00')).toBeTruthy();
     });
   });
 

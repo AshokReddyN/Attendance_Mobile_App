@@ -59,7 +59,7 @@ const PaymentsScreen = () => {
           renderItem={({ item }) => (
             <View style={[styles.card, item.status === 'Paid' ? styles.paidCard : styles.unpaidCard]}>
               <Text style={styles.monthText}>Month: {item.month}</Text>
-              <Text>Total Owed: ${item.totalAmount.toFixed(2)}</Text>
+              <Text>Total Owed: ₹{item.totalAmount.toFixed(2)}</Text>
               <Text>Status: {item.status}</Text>
             </View>
           )}

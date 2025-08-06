@@ -82,7 +82,7 @@ console.log('participants received:', participants);
     <View style={styles.container}>
       <Text style={styles.title}>{event.name}</Text>
       <Text style={styles.detail}>Date: {new Date(event.endAt).toLocaleDateString()}</Text>
-      <Text style={styles.detail}>Price: ${event.price.toFixed(2)}</Text>
+      <Text style={styles.detail}>Price: ₹{event.price.toFixed(2)}</Text>
       <Text style={styles.detail}>Ends at: {new Date(event.endAt).toLocaleTimeString()}</Text>
       <Text style={styles.detail}>Status: {eventStatus}</Text>
       <View style={styles.buttonContainer}>

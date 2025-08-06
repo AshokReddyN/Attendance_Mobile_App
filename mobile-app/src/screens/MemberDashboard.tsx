@@ -81,7 +81,7 @@ const MemberDashboard = () => {
       <View style={styles.eventContainer}>
         <Text style={styles.eventTitle}>Today's Active Event</Text>
         <Text style={styles.detailText}>Name: {todaysEvent.name}</Text>
-        <Text style={styles.detailText}>Price: {typeof todaysEvent.price === 'number' ? `$${todaysEvent.price.toFixed(2)}` : 'Price not available'}</Text>
+        <Text style={styles.detailText}>Price: {typeof todaysEvent.price === 'number' ? `₹${todaysEvent.price.toFixed(2)}` : 'Price not available'}</Text>
         <Text style={styles.detailText}>
           Ends at: {new Date(todaysEvent.endAt).toLocaleTimeString()}
         </Text>
