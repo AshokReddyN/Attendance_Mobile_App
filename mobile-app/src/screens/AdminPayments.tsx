@@ -61,7 +61,7 @@ const AdminPayments = () => {
     <View style={styles.paymentItem}>
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{item.name}</Text>
-        <Text>Owed: ${item.totalOwed.toFixed(2)}</Text>
+        <Text>Owed: {typeof item.totalOwed === 'number' ? `$${item.totalOwed.toFixed(2)}` : 'N/A'}</Text>
         <Text>Status: {item.status}</Text>
       </View>
       <TouchableOpacity
@@ -98,7 +98,7 @@ const AdminPayments = () => {
         <FlatList
           data={payments}
           renderItem={renderPaymentItem}
-          keyExtractor={(item) => item.memberId}
+          keyExtractor={(item) => item.memberId + item.month}
           contentContainerStyle={styles.listContainer}
         />
       )}
