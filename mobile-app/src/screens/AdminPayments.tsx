@@ -40,10 +40,10 @@ const AdminPayments = () => {
 
   const handleUpdateStatus = async (
     userId: string,
-    currentStatus: 'paid' | 'unpaid'
+    currentStatus: 'Paid' | 'Unpaid'
   ) => {
     try {
-      const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+      const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
       await paymentService.updatePaymentStatus(userId, month, newStatus);
       // Refresh the list to show the updated status
       fetchPayments();
@@ -67,12 +67,12 @@ const AdminPayments = () => {
       <TouchableOpacity
         style={[
           styles.statusButton,
-          item.status === 'paid' ? styles.paidButton : styles.unpaidButton,
+          item.status === 'Paid' ? styles.paidButton : styles.unpaidButton,
         ]}
         onPress={() => handleUpdateStatus(item.userId, item.status)}
       >
         <Text style={styles.statusButtonText}>
-          Mark as {item.status === 'paid' ? 'Unpaid' : 'Paid'}
+          Mark as {item.status === 'Paid' ? 'Unpaid' : 'Paid'}
         </Text>
       </TouchableOpacity>
     </View>

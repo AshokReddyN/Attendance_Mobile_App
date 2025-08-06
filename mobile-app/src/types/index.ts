@@ -24,7 +24,7 @@ export interface MemberMonthlyPayment {
   totalAmount: number;
   userId: string;
   month: string;
-  status: 'paid' | 'unpaid';
+  status: 'Paid' | 'Unpaid';
 }
 
 export interface EventParticipant {
