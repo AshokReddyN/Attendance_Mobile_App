@@ -39,12 +39,12 @@ const AdminPayments = () => {
   }, [fetchPayments]);
 
   const handleUpdateStatus = async (
-    memberId: string,
+    userId: string,
     currentStatus: 'paid' | 'unpaid'
   ) => {
     try {
       const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
-      await paymentService.updatePaymentStatus(memberId, month, newStatus);
+      await paymentService.updatePaymentStatus(userId, month, newStatus);
       // Refresh the list to show the updated status
       fetchPayments();
     } catch (error) {
@@ -69,7 +69,7 @@ const AdminPayments = () => {
           styles.statusButton,
           item.status === 'paid' ? styles.paidButton : styles.unpaidButton,
         ]}
-        onPress={() => handleUpdateStatus(item.memberId, item.status)}
+        onPress={() => handleUpdateStatus(item.userId, item.status)}
       >
         <Text style={styles.statusButtonText}>
           Mark as {item.status === 'paid' ? 'Unpaid' : 'Paid'}
@@ -98,7 +98,7 @@ const AdminPayments = () => {
         <FlatList
           data={payments}
           renderItem={renderPaymentItem}
-          keyExtractor={(item) => item.memberId + item.month}
+          keyExtractor={(item) => item.userId + item.month}
           contentContainerStyle={styles.listContainer}
         />
       )}
