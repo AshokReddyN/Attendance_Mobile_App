@@ -13,24 +13,25 @@ type MemberDashboardNavigationProp = StackNavigationProp<
 >;
 
 const MemberDashboard = () => {
-  const { logout } = useAuth();
+  const { logout, authData } = useAuth();
   const navigation = useNavigation<MemberDashboardNavigationProp>();
   const [todaysEvent, setTodaysEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOptingIn, setIsOptingIn] = useState(false);
 
-  const headerRight = useCallback(() => {
-    return <Button onPress={logout} title="Logout" />;
-  }, [logout]);
-
   useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight,
-    });
-  }, [navigation, headerRight]);
+    if (authData) {
+      navigation.setOptions({
+        headerRight: () => <Button onPress={logout} title="Logout" />,
+      });
+    }
+  }, [navigation, logout, authData]);
 
   useEffect(() => {
+    // Only fetch today's event if user is authenticated
+    if (!authData) return;
+
     const fetchTodaysEvent = async () => {
       try {
         setIsLoading(true);
@@ -46,7 +47,7 @@ const MemberDashboard = () => {
     };
 
     fetchTodaysEvent();
-  }, []);
+  }, [authData]);
 
   const handleOptIn = async () => {
     if (!todaysEvent) return;
@@ -93,6 +94,15 @@ const MemberDashboard = () => {
       </View>
     );
   };
+
+  // Don't render anything if user is not authenticated
+  if (!authData) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -157,6 +167,11 @@ const styles = StyleSheet.create({
   },
   navigationButton: {
     marginTop: 20,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

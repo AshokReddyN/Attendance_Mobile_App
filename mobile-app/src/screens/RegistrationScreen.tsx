@@ -11,9 +11,9 @@ type RegistrationScreenNavigationProp = StackNavigationProp<RootStackParamList, 
 const RegistrationScreen = () => {
   const navigation = useNavigation<RegistrationScreenNavigationProp>();
   const { login } = useAuth();
-  const [name, setName] = useState('Admin User');
-  const [email, setEmail] = useState('admin@test.com');
-  const [password, setPassword] = useState('password123');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<'member' | 'admin'>('admin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

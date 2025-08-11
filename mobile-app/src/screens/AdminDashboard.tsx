@@ -3,7 +3,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import AdminEvents from './AdminEvents';
 import AdminPayments from './AdminPayments';
 import { useAuth } from '../context/AuthContext';
-import { Button } from 'react-native';
+import { Button, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -17,15 +17,26 @@ type AdminDashboardNavigationProp = StackNavigationProp<
 
 
 const AdminDashboard = () => {
-    const { logout } = useAuth();
+    const { logout, authData } = useAuth();
     const navigation = useNavigation<AdminDashboardNavigationProp>();
 
     React.useLayoutEffect(() => {
-        navigation.setOptions({
-          headerRight: () => <Button onPress={logout} title="Logout" />,
-        });
-      }, [navigation, logout]);
+        if (authData) {
+          navigation.setOptions({
+            headerRight: () => <Button onPress={logout} title="Logout" />,
+          });
+        }
+      }, [navigation, logout, authData]);
 
+
+  // Don't render anything if user is not authenticated
+  if (!authData) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <Tab.Navigator>
@@ -34,5 +45,13 @@ const AdminDashboard = () => {
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default AdminDashboard;
