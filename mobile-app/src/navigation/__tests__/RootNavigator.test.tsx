@@ -4,15 +4,16 @@ import RootNavigator from '../RootNavigator';
 import tokenService from '../../services/tokenService';
 import { AuthResponse } from '../../services/authService';
 import { NavigationContainer } from '@react-navigation/native';
+import { Text } from 'react-native';
 
 // Mock the tokenService
 jest.mock('../../services/tokenService');
 
 // Mock the screens to avoid rendering their full content
-jest.mock('../../screens/SplashScreen', () => () => <mock-SplashScreen />);
-jest.mock('../../screens/LoginScreen', () => () => <mock-LoginScreen />);
-jest.mock('../../screens/MemberDashboard', () => () => <mock-MemberDashboard />);
-jest.mock('../../screens/AdminDashboard', () => () => <mock-AdminDashboard />);
+jest.doMock('../../screens/SplashScreen', () => () => <Text>mock-SplashScreen</Text>);
+jest.doMock('../../screens/LoginScreen', () => () => <Text>mock-LoginScreen</Text>);
+jest.doMock('../../screens/MemberDashboard', () => () => <Text>mock-MemberDashboard</Text>);
+jest.doMock('../../screens/AdminDashboard', () => () => <Text>mock-AdminDashboard</Text>);
 
 describe('RootNavigator', () => {
   afterEach(() => {

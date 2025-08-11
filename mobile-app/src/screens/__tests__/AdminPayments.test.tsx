@@ -29,17 +29,17 @@ describe('AdminPaymentsScreen', () => {
   });
 
   it('should display loading indicator initially', () => {
-    (paymentService.getMyMonthlyPayments as jest.Mock).mockResolvedValue(new Promise(() => {}));
+    (paymentService.getAllMonthlyPayments as jest.Mock).mockResolvedValue(new Promise(() => {}));
     const { getByText } = render(<TestNavigator />);
     expect(getByText('Loading payments...')).toBeTruthy();
   });
 
   it('should display payments when data is available', async () => {
     const mockPayments = [
-      { memberId: '1', name: 'Test User 1', totalOwed: 100, status: 'Paid' },
-      { memberId: '2', name: 'Test User 2', totalOwed: 120, status: 'unpaid' },
+      { userId: '1', userName: 'Test User 1', totalAmount: 100, status: 'Paid' },
+      { userId: '2', userName: 'Test User 2', totalAmount: 120, status: 'Unpaid' },
     ];
-    (paymentService.getMyMonthlyPayments as jest.Mock).mockResolvedValue(mockPayments);
+    (paymentService.getAllMonthlyPayments as jest.Mock).mockResolvedValue(mockPayments);
     const { getByText } = render(<TestNavigator />);
 
     await waitFor(() => {
@@ -50,7 +50,7 @@ describe('AdminPaymentsScreen', () => {
 
   it('should display error message on fetch failure', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert');
-    (paymentService.getMyMonthlyPayments as jest.Mock).mockRejectedValue(new Error('Failed to fetch'));
+    (paymentService.getAllMonthlyPayments as jest.Mock).mockRejectedValue(new Error('Failed to fetch'));
     render(<TestNavigator />);
 
     await waitFor(() => {

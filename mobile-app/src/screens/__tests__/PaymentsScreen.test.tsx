@@ -29,8 +29,8 @@ describe('PaymentsScreen', () => {
 
   it('should display payments when data is available', async () => {
     const mockPayments = [
-      { memberId: '1', name: 'Test User', month: '2023-01', totalOwed: 100, status: 'Paid' },
-      { memberId: '1', name: 'Test User', month: '2023-02', totalOwed: 120, status: 'Unpaid' },
+      { userId: '1', userName: 'Test User', month: '2023-01', totalAmount: 100, status: 'Paid' },
+      { userId: '1', userName: 'Test User', month: '2023-02', totalAmount: 120, status: 'Unpaid' },
     ];
     (paymentService.getMyMonthlyPayments as jest.Mock).mockResolvedValue(mockPayments);
     const { getByText } = render(<TestNavigator />);

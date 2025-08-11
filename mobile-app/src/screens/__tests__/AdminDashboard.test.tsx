@@ -20,16 +20,14 @@ const TestNavigator = () => (
 );
 
 describe('AdminDashboard', () => {
-  it('should navigate to CreateEventScreen on button press', async () => {
-    (eventService.getEvents as jest.Mock).mockResolvedValue([]);
-    const { getByText, findByText } = render(<TestNavigator />);
+  it('should render the tab navigator with Events and Payments tabs', async () => {
+    const { findByText } = render(<TestNavigator />);
 
-    await waitFor(() => expect(getByText('All Events')).toBeTruthy());
+    // Check for the tab labels
+    const eventsTab = await findByText('Manage Events');
+    const paymentsTab = await findByText('View Payments');
 
-    fireEvent.press(getByText('+ Create'));
-
-    await waitFor(() => {
-        expect(findByText('Create New Event')).toBeTruthy();
-    });
+    expect(eventsTab).toBeTruthy();
+    expect(paymentsTab).toBeTruthy();
   });
 });

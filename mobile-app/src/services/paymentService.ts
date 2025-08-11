@@ -25,18 +25,38 @@ apiClient.interceptors.request.use(
   }
 );
 
-const getMyMonthlyPayments = async (month:string): Promise<MemberMonthlyPayment[]> => {
+const getMyMonthlyPayments = async (month: string): Promise<MemberMonthlyPayment[]> => {
   try {
+    // The endpoint should be specific for the user's own payments.
     const response = await apiClient.get<{ payments: MemberMonthlyPayment[] }>(
-      '/payments/monthly?userId=me&month=' + month
+      `/payments/me/monthly?month=${month}`
     );
     return response.data.payments;
   } catch (error) {
-    console.error('Error fetching monthly payments:', error);
+    console.error('Error fetching my monthly payments:', error);
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
         error.response.data.message ||
           'An error occurred while fetching your monthly payments.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
+const getAllMonthlyPayments = async (month: string): Promise<MemberMonthlyPayment[]> => {
+  try {
+    // This endpoint is for admins to get all payments for a given month.
+    const response = await apiClient.get<{ payments: MemberMonthlyPayment[] }>(
+      `/payments/monthly?month=${month}`
+    );
+    return response.data.payments;
+  } catch (error) {
+    console.error('Error fetching all monthly payments:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while fetching the monthly payments.'
       );
     }
     throw new Error('An unexpected error occurred. Please try again.');
@@ -72,6 +92,7 @@ const updatePaymentStatus = async (
 
 const paymentService = {
   getMyMonthlyPayments,
+  getAllMonthlyPayments,
   updatePaymentStatus,
 };
 
