@@ -6,7 +6,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
-import { Button, Card, Header } from '../components';
+import { Button, Card, Header, EventCard, EmptyState } from '../components';
 import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 
 type MemberDashboardNavigationProp = StackNavigationProp<
@@ -95,55 +95,22 @@ const MemberDashboard = () => {
 
     if (!todaysEvent) {
       return (
-        <Card variant="outlined" style={styles.noEventCard}>
-          <Text style={styles.noEventText}>No active event today.</Text>
-          <Text style={styles.noEventSubtext}>Check back later for new events!</Text>
-        </Card>
+        <EmptyState
+          icon="event"
+          title="No Active Events"
+          subtitle="There are no events scheduled for today. Check back later for new events!"
+        />
       );
     }
 
     return (
-      <Card variant="elevated" style={styles.eventCard}>
-        <View style={styles.eventHeader}>
-          <Text style={styles.eventTitle}>Today's Active Event</Text>
-          <View style={styles.eventStatus}>
-            <View style={[styles.statusDot, todaysEvent.isOptedIn && styles.statusDotOptedIn]} />
-            <Text style={styles.statusText}>
-              {todaysEvent.isOptedIn ? 'Opted In' : 'Available'}
-            </Text>
-          </View>
-        </View>
-        
-        <View style={styles.eventDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Event Name:</Text>
-            <Text style={styles.detailValue}>{todaysEvent.name}</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Price:</Text>
-            <Text style={styles.detailValue}>
-              {typeof todaysEvent.price === 'number' ? `₹${todaysEvent.price.toFixed(2)}` : 'Price not available'}
-            </Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Ends at:</Text>
-            <Text style={styles.detailValue}>
-              {new Date(todaysEvent.endAt).toLocaleTimeString()}
-            </Text>
-          </View>
-        </View>
-
-        <Button
-          title={todaysEvent.isOptedIn ? 'Already Opted-In' : 'Opt-In to Event'}
-          onPress={handleOptIn}
-          disabled={todaysEvent.isOptedIn || isOptingIn}
-          loading={isOptingIn}
-          variant={todaysEvent.isOptedIn ? 'outline' : 'primary'}
-          style={styles.optInButton}
-        />
-      </Card>
+      <EventCard
+        event={todaysEvent}
+        variant="featured"
+        onPress={() => {
+          // Could navigate to event details if needed
+        }}
+      />
     );
   };
 
@@ -170,7 +137,10 @@ const MemberDashboard = () => {
           </Text>
         </View>
 
-        {renderEventDetails()}
+        <View style={styles.eventSection}>
+          <Text style={styles.sectionTitle}>Today's Event</Text>
+          {renderEventDetails()}
+        </View>
 
         <View style={styles.navigationSection}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -229,6 +199,15 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.lg,
     color: COLORS.textSecondary,
   },
+  eventSection: {
+    marginBottom: SPACING.xl,
+  },
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.lg,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+  },
   loadingCard: {
     marginBottom: SPACING.lg,
   },
@@ -251,85 +230,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: SPACING.md,
   },
-  noEventCard: {
-    marginBottom: SPACING.lg,
-    alignItems: 'center',
-    padding: SPACING.lg,
-  },
-  noEventText: {
-    fontSize: TYPOGRAPHY.lg,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
-  },
-  noEventSubtext: {
-    fontSize: TYPOGRAPHY.base,
-    color: COLORS.textTertiary,
-    textAlign: 'center',
-  },
-  eventCard: {
-    marginBottom: SPACING.lg,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  eventTitle: {
-    fontSize: TYPOGRAPHY.xl,
-    fontWeight: TYPOGRAPHY.bold as any,
-    color: COLORS.textPrimary,
-  },
-  eventStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.gray400,
-    marginRight: SPACING.xs,
-  },
-  statusDotOptedIn: {
-    backgroundColor: COLORS.success,
-  },
-  statusText: {
-    fontSize: TYPOGRAPHY.sm,
-    color: COLORS.textSecondary,
-  },
-  eventDetails: {
-    marginBottom: SPACING.lg,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-  },
-  detailLabel: {
-    fontSize: TYPOGRAPHY.base,
-    color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.medium as any,
-  },
-  detailValue: {
-    fontSize: TYPOGRAPHY.base,
-    color: COLORS.textPrimary,
-    fontWeight: TYPOGRAPHY.semibold as any,
-  },
-  optInButton: {
-    marginTop: SPACING.sm,
-  },
   navigationSection: {
     marginTop: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.lg,
-    fontWeight: TYPOGRAPHY.semibold as any,
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.md,
   },
   actionCard: {
     marginBottom: SPACING.md,

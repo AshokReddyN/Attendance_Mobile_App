@@ -18,6 +18,7 @@ const Icon: React.FC<IconProps> = ({
   // Simple emoji-based icons for now
   // In a real app, you'd use a proper icon library like @expo/vector-icons
   const iconMap: { [key: string]: string } = {
+    // Navigation & UI
     'calendar': '📅',
     'clock': '⏰',
     'user': '👤',
@@ -38,6 +39,44 @@ const Icon: React.FC<IconProps> = ({
     'search': '🔍',
     'filter': '🔧',
     'sort': '📊',
+    
+    // Status & Actions
+    'success': '✅',
+    'warning': '⚠️',
+    'error': '❌',
+    'info': 'ℹ️',
+    'star': '⭐',
+    'heart': '❤️',
+    'like': '👍',
+    'dislike': '👎',
+    'share': '📤',
+    'download': '⬇️',
+    'upload': '⬆️',
+    'refresh': '🔄',
+    'sync': '🔄',
+    'lock': '🔒',
+    'unlock': '🔓',
+    'eye': '👁️',
+    'eye-off': '🙈',
+    'camera': '📷',
+    'gallery': '🖼️',
+    'location': '📍',
+    'phone': '📞',
+    'mail': '📧',
+    'link': '🔗',
+    'copy': '📋',
+    'paste': '📋',
+    'cut': '✂️',
+    'save': '💾',
+    'print': '🖨️',
+    'help': '❓',
+    'question': '❓',
+    'exclamation': '❗',
+    'minus': '➖',
+    'equal': '🟰',
+    'percent': '💯',
+    'hash': '#️⃣',
+    'at': '@️⃣',
   };
 
   const icon = iconMap[name] || '❓';

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Card from './Card';
 import Button from './Button';
 import Icon from './Icon';
-import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
 import { Event } from '../types';
 
 interface EventCardProps {
@@ -12,7 +12,7 @@ interface EventCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   showActions?: boolean;
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'featured';
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -71,24 +71,42 @@ const EventCard: React.FC<EventCardProps> = ({
     return 'Active';
   };
 
+  const getStatusIcon = () => {
+    const now = new Date();
+    const endTime = new Date(event.endAt);
+    
+    if (now > endTime) {
+      return 'close';
+    }
+    
+    if (event.isOptedIn) {
+      return 'check';
+    }
+    
+    return 'event';
+  };
+
   if (variant === 'compact') {
     return (
       <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
         <Card variant="elevated" style={styles.compactCard}>
           <View style={styles.compactHeader}>
-            <Text style={styles.compactTitle} numberOfLines={1}>
-              {event.name}
-            </Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + '20' }]}>
-              <Text style={[styles.statusText, { color: getStatusColor() }]}>
-                {getStatusText()}
+            <View style={styles.compactTitleSection}>
+              <Text style={styles.compactTitle} numberOfLines={1}>
+                {event.name}
               </Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + '15' }]}>
+                <Icon name={getStatusIcon()} size={12} color={getStatusColor()} />
+                <Text style={[styles.statusText, { color: getStatusColor() }]}>
+                  {getStatusText()}
+                </Text>
+              </View>
             </View>
           </View>
           
           <View style={styles.compactDetails}>
             <View style={styles.compactDetailRow}>
-              <Icon name="clock" size={16} color={COLORS.textSecondary} />
+              <Icon name="clock" size={14} color={COLORS.textSecondary} />
               <Text style={styles.compactDetailText}>
                 {formatDate(event.endAt)} at {formatTime(event.endAt)}
               </Text>
@@ -96,7 +114,7 @@ const EventCard: React.FC<EventCardProps> = ({
             
             {typeof event.price === 'number' && (
               <View style={styles.compactDetailRow}>
-                <Icon name="money" size={16} color={COLORS.textSecondary} />
+                <Icon name="money" size={14} color={COLORS.textSecondary} />
                 <Text style={styles.compactDetailText}>
                   ₹{event.price.toFixed(2)}
                 </Text>
@@ -108,15 +126,87 @@ const EventCard: React.FC<EventCardProps> = ({
     );
   }
 
-  return (
-    <Card variant="elevated" style={styles.card}>
+  if (variant === 'featured') {
+    return (
       <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        <Card variant="elevated" style={styles.featuredCard}>
+          <View style={styles.featuredHeader}>
+            <View style={styles.featuredTitleSection}>
+              <Text style={styles.featuredTitle} numberOfLines={2}>
+                {event.name}
+              </Text>
+              <View style={[styles.featuredStatusBadge, { backgroundColor: getStatusColor() + '20' }]}>
+                <Icon name={getStatusIcon()} size={16} color={getStatusColor()} />
+                <Text style={[styles.featuredStatusText, { color: getStatusColor() }]}>
+                  {getStatusText()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.featuredDetails}>
+            <View style={styles.featuredDetailRow}>
+              <Icon name="calendar" size={18} color={COLORS.primary} />
+              <Text style={styles.featuredDetailText}>
+                {formatDate(event.endAt)}
+              </Text>
+            </View>
+            
+            <View style={styles.featuredDetailRow}>
+              <Icon name="clock" size={18} color={COLORS.primary} />
+              <Text style={styles.featuredDetailText}>
+                Ends at {formatTime(event.endAt)}
+              </Text>
+            </View>
+            
+            {typeof event.price === 'number' && (
+              <View style={styles.featuredDetailRow}>
+                <Icon name="money" size={18} color={COLORS.primary} />
+                <Text style={styles.featuredDetailText}>
+                  ₹{event.price.toFixed(2)}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {showActions && (
+            <View style={styles.featuredActions}>
+              {onEdit && (
+                <Button
+                  title="Edit"
+                  onPress={onEdit}
+                  variant="outline"
+                  size="small"
+                  style={{ flex: 1, marginRight: SPACING.xs }}
+                />
+              )}
+              {onDelete && (
+                <Button
+                  title="Delete"
+                  onPress={onDelete}
+                  variant="outline"
+                  size="small"
+                  style={{ flex: 1, marginLeft: SPACING.xs, borderColor: COLORS.error }}
+                />
+              )}
+            </View>
+          )}
+        </Card>
+      </TouchableOpacity>
+    );
+  }
+
+  // Default variant
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <Card variant="elevated" style={styles.card}>
         <View style={styles.header}>
           <View style={styles.titleSection}>
             <Text style={styles.title} numberOfLines={2}>
               {event.name}
             </Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + '20' }]}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + '15' }]}>
+              <Icon name={getStatusIcon()} size={14} color={getStatusColor()} />
               <Text style={[styles.statusText, { color: getStatusColor() }]}>
                 {getStatusText()}
               </Text>
@@ -126,68 +216,73 @@ const EventCard: React.FC<EventCardProps> = ({
 
         <View style={styles.details}>
           <View style={styles.detailRow}>
-            <Icon name="calendar" size={20} color={COLORS.textSecondary} />
-            <Text style={styles.detailText}>
+            <View style={styles.detailIconContainer}>
+              <Icon name="calendar" size={16} color={COLORS.textSecondary} />
+            </View>
+            <Text style={styles.detailLabel}>Date:</Text>
+            <Text style={styles.detailValue}>
               {formatDate(event.endAt)}
             </Text>
           </View>
           
           <View style={styles.detailRow}>
-            <Icon name="clock" size={20} color={COLORS.textSecondary} />
-            <Text style={styles.detailText}>
-              Ends at {formatTime(event.endAt)}
+            <View style={styles.detailIconContainer}>
+              <Icon name="clock" size={16} color={COLORS.textSecondary} />
+            </View>
+            <Text style={styles.detailLabel}>Ends at:</Text>
+            <Text style={styles.detailValue}>
+              {formatTime(event.endAt)}
             </Text>
           </View>
           
           {typeof event.price === 'number' && (
             <View style={styles.detailRow}>
-              <Icon name="money" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.detailText}>
+              <View style={styles.detailIconContainer}>
+                <Icon name="money" size={16} color={COLORS.textSecondary} />
+              </View>
+              <Text style={styles.detailLabel}>Price:</Text>
+              <Text style={styles.detailValue}>
                 ₹{event.price.toFixed(2)}
               </Text>
             </View>
           )}
         </View>
-      </TouchableOpacity>
 
-      {showActions && (
-        <View style={styles.actions}>
-          {onEdit && (
-            <Button
-              title="Edit"
-              onPress={onEdit}
-              variant="outline"
-              size="small"
-              style={{ flex: 1 }}
-            />
-          )}
-          {onDelete && (
-            <Button
-              title="Delete"
-              onPress={onDelete}
-              variant="outline"
-              size="small"
-              style={{ flex: 1, borderColor: COLORS.error }}
-            />
-          )}
-        </View>
-      )}
-    </Card>
+        {showActions && (
+          <View style={styles.actions}>
+            {onEdit && (
+              <Button
+                title="Edit Event"
+                onPress={onEdit}
+                variant="outline"
+                size="small"
+                style={{ flex: 1, marginRight: SPACING.xs }}
+              />
+            )}
+            {onDelete && (
+              <Button
+                title="Delete"
+                onPress={onDelete}
+                variant="outline"
+                size="small"
+                style={{ flex: 1, marginLeft: SPACING.xs, borderColor: COLORS.error }}
+              />
+            )}
+          </View>
+        )}
+      </Card>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  // Default variant styles
   card: {
     marginBottom: SPACING.md,
-  },
-  compactCard: {
-    marginBottom: SPACING.sm,
+    padding: SPACING.lg,
   },
   header: {
     marginBottom: SPACING.md,
-  },
-  compactHeader: {
-    marginBottom: SPACING.sm,
   },
   titleSection: {
     flexDirection: 'row',
@@ -200,19 +295,17 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.semibold as any,
     color: COLORS.textPrimary,
     flex: 1,
-  },
-  compactTitle: {
-    fontSize: TYPOGRAPHY.base,
-    fontWeight: TYPOGRAPHY.semibold as any,
-    color: COLORS.textPrimary,
-    flex: 1,
+    lineHeight: TYPOGRAPHY.lg * 1.3,
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
-    borderRadius: 12,
-    minWidth: 60,
-    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.full,
+    minWidth: 70,
+    justifyContent: 'center',
+    gap: SPACING.xs,
   },
   statusText: {
     fontSize: TYPOGRAPHY.xs,
@@ -221,33 +314,127 @@ const styles = StyleSheet.create({
   details: {
     marginBottom: SPACING.md,
   },
-  compactDetails: {
-    marginBottom: SPACING.sm,
-  },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  detailIconContainer: {
+    width: 24,
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+  },
+  detailLabel: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.medium as any,
+    marginRight: SPACING.sm,
+    minWidth: 60,
+  },
+  detailValue: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textPrimary,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    flex: 1,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+
+  // Compact variant styles
+  compactCard: {
+    marginBottom: SPACING.sm,
+    padding: SPACING.md,
+  },
+  compactHeader: {
+    marginBottom: SPACING.sm,
+  },
+  compactTitleSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  compactTitle: {
+    fontSize: TYPOGRAPHY.base,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
+    flex: 1,
+  },
+  compactDetails: {
+    marginBottom: SPACING.sm,
   },
   compactDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: SPACING.xs,
   },
-  detailText: {
-    fontSize: TYPOGRAPHY.base,
-    color: COLORS.textSecondary,
-    marginLeft: SPACING.sm,
-  },
   compactDetailText: {
     fontSize: TYPOGRAPHY.sm,
     color: COLORS.textSecondary,
     marginLeft: SPACING.sm,
   },
-  actions: {
+
+  // Featured variant styles
+  featuredCard: {
+    marginBottom: SPACING.lg,
+    padding: SPACING.xl,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  featuredHeader: {
+    marginBottom: SPACING.lg,
+  },
+  featuredTitleSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: SPACING.md,
+  },
+  featuredTitle: {
+    fontSize: TYPOGRAPHY.xl,
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+    flex: 1,
+    lineHeight: TYPOGRAPHY.xl * 1.3,
+  },
+  featuredStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+    minWidth: 80,
+    justifyContent: 'center',
+    gap: SPACING.xs,
+  },
+  featuredStatusText: {
+    fontSize: TYPOGRAPHY.sm,
+    fontWeight: TYPOGRAPHY.medium as any,
+  },
+  featuredDetails: {
+    marginBottom: SPACING.lg,
+  },
+  featuredDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  featuredDetailText: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.textPrimary,
+    fontWeight: TYPOGRAPHY.medium as any,
+    marginLeft: SPACING.md,
+  },
+  featuredActions: {
     flexDirection: 'row',
     gap: SPACING.sm,
-    paddingTop: SPACING.md,
+    paddingTop: SPACING.lg,
     borderTopWidth: 1,
     borderTopColor: COLORS.gray200,
   },

@@ -4,13 +4,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Alert,
-  TextInput,
-  Button,
+  SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import paymentService from '../services/paymentService';
 import { MemberMonthlyPayment } from '../types';
+import { Button, Input, Card, Icon, LoadingSpinner, EmptyState } from '../components';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
 
 const AdminPayments = () => {
   const [payments, setPayments] = useState<MemberMonthlyPayment[]>([]);
@@ -20,9 +21,7 @@ const AdminPayments = () => {
   const fetchPayments = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Corrected the function call to getMyMonthlyPayments and removed the argument
       const response = await paymentService.getMyMonthlyPayments(month);
-      // The response is the array of payments, so no need for .payments
       setPayments(response);
     } catch (error) {
       Alert.alert(
@@ -32,7 +31,7 @@ const AdminPayments = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []); // Removed month from dependency array as it's not used
+  }, [month]);
 
   useEffect(() => {
     fetchPayments();
@@ -57,117 +56,307 @@ const AdminPayments = () => {
     }
   };
 
+  const formatMonth = (monthString: string) => {
+    const [year, month] = monthString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    return status === 'Paid' ? COLORS.success : COLORS.error;
+  };
+
+  const getStatusIcon = (status: string) => {
+    return status === 'Paid' ? 'check-circle' : 'clock';
+  };
+
   const renderPaymentItem = ({ item }: { item: MemberMonthlyPayment }) => (
-    <View style={styles.paymentItem}>
-      <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>{item.userName}</Text>
-        <Text>Owed: {typeof item.totalAmount === 'number' ? `₹${item.totalAmount.toFixed(2)}` : 'N/A'}</Text>
-        <Text>Status: {item.paymentStatus}</Text>
+    <Card variant="elevated" style={styles.paymentCard}>
+      <View style={styles.paymentHeader}>
+        <View style={styles.memberInfo}>
+          <View style={styles.memberHeader}>
+            <View style={styles.avatarContainer}>
+              <Icon name="user" size={20} color={COLORS.primary} />
+            </View>
+            <View style={styles.memberDetails}>
+              <Text style={styles.memberName}>{item.userName}</Text>
+              <Text style={styles.memberId}>ID: {item.userId}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.amountContainer}>
+            <View style={styles.amountIconContainer}>
+              <Icon name="money" size={18} color={COLORS.textSecondary} />
+            </View>
+            <View style={styles.amountContent}>
+              <Text style={styles.amountLabel}>Amount Owed</Text>
+              <Text style={styles.amountValue}>
+                ₹{typeof item.totalAmount === 'number' ? item.totalAmount.toFixed(2) : 'N/A'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.statusSection}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '15' }]}>
+            <Icon name={getStatusIcon(item.status)} size={16} color={getStatusColor(item.status)} />
+            <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+              {item.status}
+            </Text>
+          </View>
+          
+          <Button
+            title={`Mark as ${item.status === 'Paid' ? 'Unpaid' : 'Paid'}`}
+            onPress={() => handleUpdateStatus(item.userId, item.status)}
+            variant={item.status === 'Paid' ? 'outline' : 'primary'}
+            size="small"
+            style={styles.statusButton}
+          />
+        </View>
       </View>
-      <TouchableOpacity
-        style={[
-          styles.statusButton,
-          item.status === 'Paid' ? styles.paidButton : styles.unpaidButton,
-        ]}
-        onPress={() => handleUpdateStatus(item.userId, item.status)}
-      >
-        <Text style={styles.statusButtonText}>
-          Mark as {item.status === 'Paid' ? 'Unpaid' : 'Paid'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+    </Card>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.monthSelector}>
-        <TextInput
-          style={styles.input}
-          value={month}
-          onChangeText={setMonth}
-          placeholder="YYYY-MM"
-        />
-        <Button title="Fetch Payments" onPress={fetchPayments} />
-      </View>
-
-      {isLoading ? (
-        <View style={styles.centered}>
-          <Text>Loading payments...</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Payment Management</Text>
+          <Text style={styles.subtitle}>
+            Manage member payment statuses and track monthly payments
+          </Text>
         </View>
-      ) : (
-        <FlatList
-          data={payments}
-          renderItem={renderPaymentItem}
-          keyExtractor={(item) => item.userId + item.month}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
-    </View>
+
+        <Card variant="elevated" style={styles.monthSelectorCard}>
+          <Text style={styles.sectionTitle}>Select Month</Text>
+          <View style={styles.monthSelector}>
+            <Input
+              label="Month (YYYY-MM)"
+              placeholder="2024-01"
+              value={month}
+              onChangeText={setMonth}
+              style={styles.monthInput}
+            />
+            <Button
+              title="Fetch Payments"
+              onPress={fetchPayments}
+              variant="primary"
+              style={styles.fetchButton}
+            />
+          </View>
+          <Text style={styles.monthDisplay}>
+            Currently viewing: <Text style={styles.monthHighlight}>{formatMonth(month)}</Text>
+          </Text>
+        </Card>
+
+        {isLoading ? (
+          <LoadingSpinner text="Loading payments..." />
+        ) : payments.length === 0 ? (
+          <EmptyState
+            icon="credit-card"
+            title="No Payments Found"
+            subtitle={`No payment records found for ${formatMonth(month)}. Members will appear here once they participate in events.`}
+            variant="default"
+          />
+        ) : (
+          <View style={styles.paymentsContainer}>
+            <View style={styles.paymentsHeader}>
+              <Text style={styles.sectionTitle}>Payment Records</Text>
+              <Text style={styles.paymentCount}>{payments.length} members</Text>
+            </View>
+            
+            <FlatList
+              data={payments}
+              renderItem={renderPaymentItem}
+              keyExtractor={(item) => item.userId + item.month}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.paymentsList}
+            />
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    backgroundColor: COLORS.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: SPACING.md,
+    paddingBottom: SPACING.xl,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+    paddingTop: SPACING.sm,
+  },
+  title: {
+    fontSize: TYPOGRAPHY['2xl'],
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: TYPOGRAPHY.lg * 1.4,
+  },
+  monthSelectorCard: {
+    marginBottom: SPACING.xl,
+  },
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.lg,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
   },
   monthSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    gap: SPACING.lg,
+    marginBottom: SPACING.md,
+    position: 'relative',
+    zIndex: 1,
   },
-  input: {
+  monthInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    marginRight: 8,
-    borderRadius: 5,
+    minWidth: 250,
+    maxWidth: '70%',
+    overflow: 'hidden',
+    zIndex: 1,
+    paddingRight: 0,
   },
-  listContainer: {
-    paddingBottom: 20,
+  fetchButton: {
+    minWidth: 120,
+    flexShrink: 0,
   },
-  paymentItem: {
-    backgroundColor: '#f9f9f9',
-    padding: 15,
-    marginVertical: 8,
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
+  monthDisplay: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  monthHighlight: {
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.primary,
+  },
+  paymentsContainer: {
+    marginBottom: SPACING.lg,
+  },
+  paymentsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  paymentCount: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+    backgroundColor: COLORS.gray100,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  paymentsList: {
+    gap: SPACING.md,
+  },
+  paymentCard: {
+    marginBottom: SPACING.sm,
+  },
+  paymentHeader: {
+    gap: SPACING.md,
   },
   memberInfo: {
+    gap: SPACING.md,
+  },
+  memberHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  avatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  memberDetails: {
     flex: 1,
   },
   memberName: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY.lg,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  memberId: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+  },
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+  },
+  amountIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.gray100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  amountContent: {
+    flex: 1,
+  },
+  amountLabel: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.medium as any,
+    marginBottom: SPACING.xs,
+  },
+  amountValue: {
+    fontSize: TYPOGRAPHY.xl,
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+  },
+  statusSection: {
+    alignItems: 'flex-end',
+    gap: SPACING.sm,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.full,
+    minWidth: 80,
+    justifyContent: 'center',
+    gap: SPACING.xs,
+  },
+  statusText: {
+    fontSize: TYPOGRAPHY.sm,
+    fontWeight: TYPOGRAPHY.medium as any,
   },
   statusButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  paidButton: {
-    backgroundColor: '#28a745',
-  },
-  unpaidButton: {
-    backgroundColor: '#dc3545',
-  },
-  statusButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    minWidth: 140,
   },
 });
 
