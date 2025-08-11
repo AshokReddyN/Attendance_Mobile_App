@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/RootNavigator';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Input, Card } from '../components';
+import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 
-type RegistrationScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Registration'>;
+// Define the auth navigation type
+type AuthStackParamList = {
+  Login: undefined;
+  Registration: undefined;
+};
+
+type RegistrationScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Registration'>;
 
 const RegistrationScreen = () => {
   const navigation = useNavigation<RegistrationScreenNavigationProp>();
@@ -14,11 +21,16 @@ const RegistrationScreen = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'member' | 'admin'>('admin');
+  const [role, setRole] = useState<'member' | 'admin'>('member');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async () => {
+    if (!name || !email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     const userData = { name, email, password, role };
@@ -36,111 +48,200 @@ const RegistrationScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-        autoCapitalize="words"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Text style={styles.roleLabel}>Select your role:</Text>
-      <View style={styles.roleSelector}>
-        <TouchableOpacity
-          style={[styles.roleButton, role === 'member' && styles.roleButtonSelected]}
-          onPress={() => setRole('member')}
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={[styles.roleButtonText, role === 'member' && styles.roleButtonTextSelected]}>Member</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.roleButton, role === 'admin' && styles.roleButtonSelected]}
-          onPress={() => setRole('admin')}
-        >
-          <Text style={[styles.roleButtonText, role === 'admin' && styles.roleButtonTextSelected]}>Admin</Text>
-        </TouchableOpacity>
-      </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <Button title="Register" onPress={handleRegister} disabled={loading} />
-      )}
-    </View>
+          <View style={styles.header}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Join us and start tracking attendance</Text>
+          </View>
+
+          <Card variant="elevated" style={styles.formCard}>
+            <Input
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoComplete="name"
+            />
+
+            <Input
+              label="Email Address"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+
+            <Input
+              label="Password"
+              placeholder="Create a password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoComplete="password-new"
+            />
+
+            <View style={styles.roleSection}>
+              <Text style={styles.roleLabel}>Select your role:</Text>
+              <View style={styles.roleSelector}>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === 'member' && styles.roleButtonSelected]}
+                  onPress={() => setRole('member')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.roleButtonText, role === 'member' && styles.roleButtonTextSelected]}>
+                    Member
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.roleButton, role === 'admin' && styles.roleButtonSelected]}
+                  onPress={() => setRole('admin')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.roleButtonText, role === 'admin' && styles.roleButtonTextSelected]}>
+                    Admin
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <Button
+              title="Create Account"
+              onPress={handleRegister}
+              loading={loading}
+              disabled={loading}
+              style={styles.registerButton}
+            />
+          </Card>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.signinLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xl,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: SPACING['2xl'],
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY['3xl'],
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
     textAlign: 'center',
-    marginBottom: 30,
   },
-  input: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
+  subtitle: {
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  formCard: {
+    marginBottom: SPACING.xl,
+  },
+  roleSection: {
+    marginBottom: SPACING.md,
   },
   roleLabel: {
-    fontSize: 16,
-    marginBottom: 10,
-    textAlign: 'center',
+    fontSize: TYPOGRAPHY.sm,
+    fontWeight: TYPOGRAPHY.medium as any,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
   },
   roleSelector: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
   },
   roleButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginHorizontal: 5,
+    flex: 1,
+    backgroundColor: COLORS.white,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   roleButtonSelected: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   roleButtonText: {
-    color: '#007bff',
-    fontSize: 16,
+    color: COLORS.primary,
+    fontSize: TYPOGRAPHY.base,
+    fontWeight: TYPOGRAPHY.semibold as any,
   },
   roleButtonTextSelected: {
-    color: '#fff',
+    color: COLORS.white,
+  },
+  errorContainer: {
+    backgroundColor: COLORS.error + '10',
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginBottom: SPACING.md,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.error,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: TYPOGRAPHY.sm,
+    textAlign: 'center',
+  },
+  registerButton: {
+    marginTop: SPACING.sm,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.textSecondary,
+  },
+  signinLink: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.semibold as any,
   },
 });
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
-const API_URL = 'http://192.168.29.139:5004/api'; // For Android emulator
+const API_URL = 'http://192.168.1.7:5004/api'; // For Android emulator
 // const API_URL = 'http://192.168.x.x:5004/api'; // For iOS simulator, replace with your Mac's IP
 
 const apiClient = axios.create({

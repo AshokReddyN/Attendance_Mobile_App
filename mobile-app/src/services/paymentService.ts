@@ -3,7 +3,7 @@ import { MemberMonthlyPayment } from '../types';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
-const API_URL = 'http://192.168.29.139:5004/api'; // For Android emulator
+const API_URL = 'http://192.168.1.7:5004/api'; // For Android emulator
 
 const apiClient = axios.create({
   baseURL: API_URL,
