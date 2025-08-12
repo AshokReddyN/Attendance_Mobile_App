@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
-import { Button, Input, Card } from '../components';
+import { Button, Input, Card, Icon } from '../components';
 import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 
 // Define the auth navigation type
@@ -193,13 +193,14 @@ const styles = StyleSheet.create({
   roleButton: {
     flex: 1,
     backgroundColor: COLORS.white,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.md,
-    borderRadius: 12,
-    borderWidth: 2,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.xs,
+    borderRadius: 4,
+    borderWidth: 1,
     borderColor: COLORS.gray200,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 40,
   },
   roleButtonSelected: {
     backgroundColor: COLORS.primary,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   },
   roleButtonText: {
     color: COLORS.primary,
-    fontSize: TYPOGRAPHY.base,
+    fontSize: TYPOGRAPHY.xs,
     fontWeight: TYPOGRAPHY.semibold as any,
   },
   roleButtonTextSelected: {

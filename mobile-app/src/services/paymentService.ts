@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { MemberMonthlyPayment } from '../types';
+import { MemberMonthlyPayment, UserMonthlyPayment } from '../types';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
@@ -28,7 +28,7 @@ apiClient.interceptors.request.use(
 const getMyMonthlyPayments = async (month:string): Promise<MemberMonthlyPayment[]> => {
   try {
     const response = await apiClient.get<{ payments: MemberMonthlyPayment[] }>(
-      '/payments/monthly?userId=me&month=' + month
+      '/payments/monthly?month=' + month
     );
     return response.data.payments;
   } catch (error) {
@@ -37,6 +37,22 @@ const getMyMonthlyPayments = async (month:string): Promise<MemberMonthlyPayment[
       throw new Error(
         error.response.data.message ||
           'An error occurred while fetching your monthly payments.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
+const getMyPayments = async (): Promise<UserMonthlyPayment[]> => {
+  try {
+    const response = await apiClient.get<{ data: UserMonthlyPayment[], success: boolean }>('/payments/me');
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching member payments:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while fetching your payments.'
       );
     }
     throw new Error('An unexpected error occurred. Please try again.');
@@ -72,6 +88,7 @@ const updatePaymentStatus = async (
 
 const paymentService = {
   getMyMonthlyPayments,
+  getMyPayments,
   updatePaymentStatus,
 };
 

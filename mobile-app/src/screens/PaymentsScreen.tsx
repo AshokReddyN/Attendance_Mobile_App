@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, ScrollView } from 'react-native';
 import paymentService from '../services/paymentService';
-import { MemberMonthlyPayment } from '../types';
+import { UserMonthlyPayment } from '../types';
 import { Card, Icon, LoadingSpinner, EmptyState } from '../components';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
 
 const PaymentsScreen = () => {
-  const [payments, setPayments] = useState<MemberMonthlyPayment[]>([]);
+  const [payments, setPayments] = useState<UserMonthlyPayment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,17 +14,11 @@ const PaymentsScreen = () => {
     const fetchPayments = async () => {
       try {
         setIsLoading(true);
-        const today = new Date();
-        const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        const fetchedPayments = await paymentService.getMyMonthlyPayments(month);
+        const fetchedPayments = await paymentService.getMyPayments();
         setPayments(fetchedPayments);
         setError(null);
-      } catch (e: any) {
-        if (e.message.includes('403')) {
-          setError('You are not authorized to view these payments.');
-        } else {
-          setError('Failed to fetch your monthly payments.');
-        }
+      } catch (e) {
+        setError('Failed to fetch your payments.');
         console.error(e);
       } finally {
         setIsLoading(false);
@@ -51,23 +45,17 @@ const PaymentsScreen = () => {
     return status === 'Paid' ? 'check-circle' : 'clock';
   };
 
-  const renderPaymentItem = ({ item }: { item: MemberMonthlyPayment }) => (
-    <Card 
-      variant="elevated" 
-      style={[
-        styles.paymentCard,
-        { borderLeftColor: getStatusColor(item.status), borderLeftWidth: 4 }
-      ]}
-    >
+  const renderPaymentItem = ({ item }: { item: UserMonthlyPayment }) => (
+    <Card variant="elevated" style={styles.paymentCard}>
       <View style={styles.paymentHeader}>
         <View style={styles.monthContainer}>
           <Icon name="calendar" size={20} color={COLORS.primary} />
           <Text style={styles.monthText}>{formatMonth(item.month)}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '15' }]}>
-          <Icon name={getStatusIcon(item.status)} size={16} color={getStatusColor(item.status)} />
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-            {item.status}
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.paymentStatus) + '15' }]}>
+          <Icon name={getStatusIcon(item.paymentStatus)} size={16} color={getStatusColor(item.paymentStatus)} />
+          <Text style={[styles.statusText, { color: getStatusColor(item.paymentStatus) }]}>
+            {item.paymentStatus}
           </Text>
         </View>
       </View>
@@ -85,7 +73,7 @@ const PaymentsScreen = () => {
 
         <View style={styles.paymentInfo}>
           <Text style={styles.paymentNote}>
-            {item.status === 'Paid' 
+            {item.paymentStatus === 'Paid' 
               ? 'Payment completed successfully for this month'
               : 'Payment pending for this month'
             }
@@ -124,7 +112,7 @@ const PaymentsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Payment History</Text>
+          <Text style={styles.title}>My Payments</Text>
           <Text style={styles.subtitle}>
             Track your monthly payment status and amounts
           </Text>
@@ -139,10 +127,14 @@ const PaymentsScreen = () => {
           />
         ) : (
           <View style={styles.paymentsContainer}>
-            <Text style={styles.sectionTitle}>Recent Payments</Text>
+            <View style={styles.paymentsHeader}>
+              <Text style={styles.sectionTitle}>Payment Records</Text>
+              <Text style={styles.paymentCount}>{payments.length} months</Text>
+            </View>
+            
             <FlatList
               data={payments}
-              keyExtractor={(item) => item.userId + item.month}
+              keyExtractor={(item) => item.month}
               renderItem={renderPaymentItem}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
@@ -188,11 +180,24 @@ const styles = StyleSheet.create({
   paymentsContainer: {
     marginBottom: SPACING.lg,
   },
+  paymentsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
   sectionTitle: {
     fontSize: TYPOGRAPHY.lg,
     fontWeight: TYPOGRAPHY.semibold as any,
     color: COLORS.textPrimary,
-    marginBottom: SPACING.md,
+  },
+  paymentCount: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+    backgroundColor: COLORS.gray100,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.full,
   },
   paymentsList: {
     gap: SPACING.md,

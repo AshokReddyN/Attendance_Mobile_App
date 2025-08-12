@@ -21,6 +21,7 @@ const MemberDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOptingIn, setIsOptingIn] = useState(false);
+  const [isOptingOut, setIsOptingOut] = useState(false);
 
   useLayoutEffect(() => {
     if (authData) {
@@ -66,11 +67,34 @@ const MemberDashboard = () => {
       await eventService.optInToEvent(todaysEvent.id);
       setTodaysEvent({ ...todaysEvent, isOptedIn: true });
       Alert.alert('Success', 'You have successfully opted in to the event.');
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+    } catch (e: any) {
+      let errorMessage = 'An unknown error occurred.';
+      
+      if (e.message && e.message.includes('Already opted in to this event')) {
+        errorMessage = 'Already opted in to this event';
+      } else if (e.message) {
+        errorMessage = e.message;
+      }
+      
       Alert.alert('Opt-In Failed', errorMessage);
     } finally {
       setIsOptingIn(false);
+    }
+  };
+
+  const handleOptOut = async () => {
+    if (!todaysEvent) return;
+
+    setIsOptingOut(true);
+    try {
+      await eventService.optOutOfEvent(todaysEvent.id);
+      setTodaysEvent({ ...todaysEvent, isOptedIn: false });
+      Alert.alert('Success', 'You have successfully opted out of the event.');
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      Alert.alert('Opt-Out Failed', errorMessage);
+    } finally {
+      setIsOptingOut(false);
     }
   };
 
@@ -107,6 +131,10 @@ const MemberDashboard = () => {
       <EventCard
         event={todaysEvent}
         variant="featured"
+        onOptIn={handleOptIn}
+        onOptOut={handleOptOut}
+        isOptingIn={isOptingIn}
+        isOptingOut={isOptingOut}
         onPress={() => {
           // Could navigate to event details if needed
         }}

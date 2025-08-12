@@ -10,18 +10,24 @@ interface EventCardProps {
   event: Event;
   onPress?: () => void;
   onEdit?: () => void;
-  onDelete?: () => void;
+  onOptIn?: () => void;
+  onOptOut?: () => void;
   showActions?: boolean;
   variant?: 'default' | 'compact' | 'featured';
+  isOptingIn?: boolean;
+  isOptingOut?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
   event,
   onPress,
   onEdit,
-  onDelete,
+  onOptIn,
+  onOptOut,
   showActions = false,
   variant = 'default',
+  isOptingIn = false,
+  isOptingOut = false,
 }) => {
   const formatDate = (dateInput: string | number | Date) => {
     const date = new Date(dateInput);
@@ -180,15 +186,39 @@ const EventCard: React.FC<EventCardProps> = ({
                   style={{ flex: 1, marginRight: SPACING.xs }}
                 />
               )}
-              {onDelete && (
-                <Button
-                  title="Delete"
-                  onPress={onDelete}
-                  variant="outline"
-                  size="small"
-                  style={{ flex: 1, marginLeft: SPACING.xs, borderColor: COLORS.error }}
-                />
-              )}
+            </View>
+          )}
+
+          {onOptIn && !event.isOptedIn && (
+            <View style={styles.featuredOptIn}>
+              <Button
+                title={isOptingIn ? "Opting In..." : "Opt In to Event"}
+                onPress={onOptIn}
+                variant="primary"
+                loading={isOptingIn}
+                disabled={isOptingIn}
+                style={styles.optInButton}
+              />
+            </View>
+          )}
+
+          {onOptOut && event.isOptedIn && (
+            <View style={styles.featuredOptOut}>
+              <Button
+                title={isOptingOut ? "Opting Out..." : "Opt Out of Event"}
+                onPress={onOptOut}
+                variant="outline"
+                loading={isOptingOut}
+                disabled={isOptingOut}
+                style={styles.optOutButton}
+              />
+            </View>
+          )}
+
+          {event.isOptedIn && !onOptOut && (
+            <View style={styles.optedInStatus}>
+              <Icon name="check-circle" size={16} color={COLORS.success} />
+              <Text style={styles.optedInText}>Successfully Opted In</Text>
             </View>
           )}
         </Card>
@@ -257,15 +287,6 @@ const EventCard: React.FC<EventCardProps> = ({
                 variant="outline"
                 size="small"
                 style={{ flex: 1, marginRight: SPACING.xs }}
-              />
-            )}
-            {onDelete && (
-              <Button
-                title="Delete"
-                onPress={onDelete}
-                variant="outline"
-                size="small"
-                style={{ flex: 1, marginLeft: SPACING.xs, borderColor: COLORS.error }}
               />
             )}
           </View>
@@ -437,6 +458,38 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.lg,
     borderTopWidth: 1,
     borderTopColor: COLORS.gray200,
+  },
+  featuredOptIn: {
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+  optInButton: {
+    width: '100%',
+  },
+  featuredOptOut: {
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+  optOutButton: {
+    width: '100%',
+  },
+  optedInStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+  },
+  optedInText: {
+    marginLeft: SPACING.sm,
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.success,
+    fontWeight: TYPOGRAPHY.medium as any,
   },
 });
 
