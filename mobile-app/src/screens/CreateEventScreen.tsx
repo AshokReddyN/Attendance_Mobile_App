@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  TouchableOpacity,
   Alert,
   Platform,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import {
   useNavigation,
@@ -17,6 +18,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import eventService from '../services/eventService';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { Button, Input, Card, Icon, LoadingSpinner } from '../components';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants/theme';
 
 type CreateEventNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -30,6 +33,7 @@ const CreateEventScreen = () => {
   const [price, setPrice] = useState('');
   const [endTime, setEndTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigation = useNavigation<CreateEventNavigationProp>();
   const route = useRoute<CreateEventRouteProp>();
 
@@ -67,6 +71,7 @@ const CreateEventScreen = () => {
     };
 
     try {
+      setIsSubmitting(true);
       if (isCloning) {
         await eventService.createEvent(eventData);
         Alert.alert('Success', 'Event cloned successfully.');
@@ -82,6 +87,8 @@ const CreateEventScreen = () => {
           ? error.message
           : 'An unexpected error occurred.'
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,92 +98,194 @@ const CreateEventScreen = () => {
     setEndTime(currentTime);
   };
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        {isCloning ? 'Clone Event' : 'Create New Event'}
-      </Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Event Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Price"
-        value={price}
-        onChangeText={setPrice}
-        keyboardType="numeric"
-      />
-      <View style={styles.timePickerContainer}>
-        <Text style={styles.timePickerLabel}>End Time:</Text>
-        <TouchableOpacity onPress={() => setShowTimePicker(true)}>
-          <Text style={styles.timeText}>{endTime.toLocaleTimeString()}</Text>
-        </TouchableOpacity>
-      </View>
-      {showTimePicker && (
-        <DateTimePicker
-          testID="timePicker"
-          value={endTime}
-          mode="time"
-          is24Hour={true}
-          display="default"
-          onChange={onTimeChange}
-        />
-      )}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>
-          {isCloning ? 'Clone Event' : 'Create Event'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              {isCloning ? 'Clone Event' : 'Create New Event'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isCloning 
+                ? 'Create a copy of the existing event' 
+                : 'Set up a new event for your organization'
+              }
+            </Text>
+          </View>
+
+          <Card variant="elevated" style={styles.formCard}>
+            <Text style={styles.sectionTitle}>Event Details</Text>
+            
+            <Input
+              label="Event Name"
+              placeholder="Enter event name"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoComplete="off"
+              leftIcon={<Icon name="event" size={20} color={COLORS.primary} />}
+            />
+
+            <Input
+              label="Price (₹)"
+              placeholder="Enter event price"
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+              leftIcon={<Icon name="money" size={20} color={COLORS.primary} />}
+            />
+
+            <View style={styles.timePickerSection}>
+              <Text style={styles.timePickerLabel}>End Time</Text>
+              <View style={styles.timePickerContainer}>
+                <View style={styles.timeDisplay}>
+                  <Icon name="clock" size={20} color={COLORS.primary} />
+                  <Text style={styles.timeText}>{formatTime(endTime)}</Text>
+                </View>
+                <Button
+                  title="Change Time"
+                  onPress={() => setShowTimePicker(true)}
+                  variant="outline"
+                  size="small"
+                />
+              </View>
+            </View>
+
+            {showTimePicker && (
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  testID="timePicker"
+                  value={endTime}
+                  mode="time"
+                  is24Hour={false}
+                  display="default"
+                  onChange={onTimeChange}
+                />
+              </View>
+            )}
+          </Card>
+
+          <View style={styles.actionsSection}>
+            <Button
+              title={isCloning ? 'Clone Event' : 'Create Event'}
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              style={styles.submitButton}
+            />
+            
+            <Button
+              title="Cancel"
+              onPress={() => navigation.goBack()}
+              variant="ghost"
+              style={styles.cancelButton}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: SPACING.md,
+    paddingBottom: SPACING.xl,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+    paddingTop: SPACING.md,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: TYPOGRAPHY['2xl'],
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
     textAlign: 'center',
   },
-  input: {
-    backgroundColor: '#f2f2f2',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 15,
-    fontSize: 16,
+  subtitle: {
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: TYPOGRAPHY.lg * 1.4,
+  },
+  formCard: {
+    marginBottom: SPACING.xl,
+  },
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.lg,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.lg,
+  },
+  timePickerSection: {
+    marginBottom: SPACING.md,
+  },
+  timePickerLabel: {
+    fontSize: TYPOGRAPHY.sm,
+    fontWeight: TYPOGRAPHY.medium as any,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
   },
   timePickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.gray50,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
   },
-  timePickerLabel: {
-    fontSize: 16,
-    marginRight: 10,
+  timeDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
   },
   timeText: {
-    fontSize: 16,
-    color: '#007BFF',
+    fontSize: TYPOGRAPHY.lg,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
   },
-  button: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 10,
+  pickerContainer: {
     alignItems: 'center',
+    marginTop: SPACING.sm,
+    padding: SPACING.md,
+    backgroundColor: COLORS.gray50,
+    borderRadius: BORDER_RADIUS.lg,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  actionsSection: {
+    gap: SPACING.md,
+  },
+  submitButton: {
+    marginBottom: SPACING.sm,
+  },
+  cancelButton: {
+    marginTop: SPACING.sm,
   },
 });
 

@@ -3,7 +3,7 @@ import { Event, EventParticipant, NewEvent, Participation } from '../types';
 import tokenService from './tokenService';
 
 // TODO: Replace with your actual API URL from a configuration file
-const API_URL = 'http://192.168.29.139:5004/api'; // For Android emulator
+const API_URL = 'http://192.168.1.2:5004/api'; // For Android emulator
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -147,9 +147,26 @@ const optInToEvent = async (eventId: string): Promise<void> => {
     await apiClient.post(`/events/${eventId}/optin`);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
+      if (error.response.status === 400 && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      }
       throw new Error(
         error.response.data.message ||
           'An error occurred while opting in to the event.'
+      );
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
+  }
+};
+
+const optOutOfEvent = async (eventId: string): Promise<void> => {
+  try {
+    await apiClient.post(`/events/${eventId}/optout`);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.message ||
+          'An error occurred while opting out of the event.'
       );
     }
     throw new Error('An unexpected error occurred. Please try again.');
@@ -182,6 +199,7 @@ const eventService = {
   closeEvent,
   getEventParticipants,
   optInToEvent,
+  optOutOfEvent,
   getMyParticipations,
 };
 

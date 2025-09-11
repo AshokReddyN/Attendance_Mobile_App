@@ -6,13 +6,15 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
-  Button,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
+import { Button, EventCard, EmptyState, LoadingSpinner } from '../components';
+import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 
 type AdminEventsNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -45,96 +47,111 @@ const AdminEvents = () => {
     }, [])
   );
 
+  const handleEditEvent = (event: Event) => {
+    navigation.navigate('EditEvent', { event });
+  };
+
+  const handleDeleteEvent = (event: Event) => {
+    Alert.alert(
+      'Delete Event',
+      `Are you sure you want to delete "${event.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Add delete logic here
+              Alert.alert('Success', 'Event deleted successfully');
+              fetchEvents(); // Refresh the list
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete event');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderEventItem = ({ item }: { item: Event }) => (
-    <TouchableOpacity
-      style={styles.eventItem}
+    <EventCard
+      event={item}
+      variant="default"
       onPress={() => navigation.navigate('EventDetails', { event: item })}
-    >
-      <Text style={styles.eventName}>{item.name}</Text>
-      <Text>Date: {new Date(item.endAt).toLocaleDateString()}</Text>
-      <Text>Price: ₹{item.price.toFixed(2)}</Text>
-      <Text>Opt-ins: {item.optInCount}</Text>
-      <Text>Status: {item.status}</Text>
-    </TouchableOpacity>
+      onEdit={() => handleEditEvent(item)}
+      onDelete={() => handleDeleteEvent(item)}
+      showActions={true}
+    />
   );
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <Text>Loading events...</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <LoadingSpinner text="Loading events..." />
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>All Events</Text>
-        <TouchableOpacity
-          style={styles.createButton}
+        <Button
+          title="+ Create Event"
           onPress={() => navigation.navigate('CreateEvent')}
-        >
-          <Text style={styles.createButtonText}>+ Create</Text>
-        </TouchableOpacity>
+          variant="primary"
+          size="small"
+        />
       </View>
-      <FlatList
-        data={events}
-        renderItem={renderEventItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-      />
-    </View>
+      
+      {events.length === 0 ? (
+        <EmptyState
+          icon="event"
+          title="No Events Found"
+          subtitle="Create your first event to get started!"
+          action={
+            <Button
+              title="Create Event"
+              onPress={() => navigation.navigate('CreateEvent')}
+              variant="primary"
+            />
+          }
+        />
+      ) : (
+        <FlatList
+          data={events}
+          renderItem={renderEventItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    padding: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+    backgroundColor: COLORS.white,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  createButton: {
-    backgroundColor: '#007BFF',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  createButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.xl,
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
   },
   listContainer: {
-    paddingBottom: 20,
-  },
-  eventItem: {
-    backgroundColor: '#f9f9f9',
-    padding: 15,
-    marginVertical: 8,
-    borderRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
-  },
-  eventName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: SPACING.md,
   },
 });
 

@@ -1,11 +1,13 @@
 import React, { useLayoutEffect, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, SafeAreaView, ScrollView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import eventService from '../services/eventService';
 import { Event } from '../types';
+import { Button, Card, Header, EventCard, EmptyState } from '../components';
+import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 
 type MemberDashboardNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -13,24 +15,33 @@ type MemberDashboardNavigationProp = StackNavigationProp<
 >;
 
 const MemberDashboard = () => {
-  const { logout } = useAuth();
+  const { logout, authData } = useAuth();
   const navigation = useNavigation<MemberDashboardNavigationProp>();
   const [todaysEvent, setTodaysEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOptingIn, setIsOptingIn] = useState(false);
-
-  const headerRight = useCallback(() => {
-    return <Button onPress={logout} title="Logout" />;
-  }, [logout]);
+  const [isOptingOut, setIsOptingOut] = useState(false);
 
   useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight,
-    });
-  }, [navigation, headerRight]);
+    if (authData) {
+      navigation.setOptions({
+        headerRight: () => (
+          <Button
+            title="Logout"
+            onPress={logout}
+            variant="ghost"
+            size="small"
+          />
+        ),
+      });
+    }
+  }, [navigation, logout, authData]);
 
   useEffect(() => {
+    // Only fetch today's event if user is authenticated
+    if (!authData) return;
+
     const fetchTodaysEvent = async () => {
       try {
         setIsLoading(true);
@@ -46,7 +57,7 @@ const MemberDashboard = () => {
     };
 
     fetchTodaysEvent();
-  }, []);
+  }, [authData]);
 
   const handleOptIn = async () => {
     if (!todaysEvent) return;
@@ -56,107 +67,205 @@ const MemberDashboard = () => {
       await eventService.optInToEvent(todaysEvent.id);
       setTodaysEvent({ ...todaysEvent, isOptedIn: true });
       Alert.alert('Success', 'You have successfully opted in to the event.');
-    } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+    } catch (e: any) {
+      let errorMessage = 'An unknown error occurred.';
+      
+      if (e.message && e.message.includes('Already opted in to this event')) {
+        errorMessage = 'Already opted in to this event';
+      } else if (e.message) {
+        errorMessage = e.message;
+      }
+      
       Alert.alert('Opt-In Failed', errorMessage);
     } finally {
       setIsOptingIn(false);
     }
   };
 
+  const handleOptOut = async () => {
+    if (!todaysEvent) return;
+
+    setIsOptingOut(true);
+    try {
+      await eventService.optOutOfEvent(todaysEvent.id);
+      setTodaysEvent({ ...todaysEvent, isOptedIn: false });
+      Alert.alert('Success', 'You have successfully opted out of the event.');
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      Alert.alert('Opt-Out Failed', errorMessage);
+    } finally {
+      setIsOptingOut(false);
+    }
+  };
+
   const renderEventDetails = () => {
     if (isLoading) {
-      return <ActivityIndicator testID="activity-indicator" size="large" color="#0000ff" />;
+      return (
+        <Card variant="elevated" style={styles.loadingCard}>
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading today's event...</Text>
+          </View>
+        </Card>
+      );
     }
 
     if (error) {
-      return <Text style={styles.errorText}>{error}</Text>;
+      return (
+        <Card variant="outlined" style={styles.errorCard}>
+          <Text style={styles.errorText}>{error}</Text>
+        </Card>
+      );
     }
 
     if (!todaysEvent) {
-      return <Text style={styles.noEventText}>No active event today.</Text>;
+      return (
+        <EmptyState
+          icon="event"
+          title="No Active Events"
+          subtitle="There are no events scheduled for today. Check back later for new events!"
+        />
+      );
     }
 
     return (
-      <View style={styles.eventContainer}>
-        <Text style={styles.eventTitle}>Today's Active Event</Text>
-        <Text style={styles.detailText}>Name: {todaysEvent.name}</Text>
-        <Text style={styles.detailText}>Price: {typeof todaysEvent.price === 'number' ? `₹${todaysEvent.price.toFixed(2)}` : 'Price not available'}</Text>
-        <Text style={styles.detailText}>
-          Ends at: {new Date(todaysEvent.endAt).toLocaleTimeString()}
-        </Text>
-        <Button
-          title={todaysEvent.isOptedIn ? 'Opted-In' : 'Opt-In'}
-          onPress={handleOptIn}
-          disabled={todaysEvent.isOptedIn || isOptingIn}
-        />
-      </View>
+      <EventCard
+        event={todaysEvent}
+        variant="featured"
+        onOptIn={handleOptIn}
+        onOptOut={handleOptOut}
+        isOptingIn={isOptingIn}
+        isOptingOut={isOptingOut}
+        onPress={() => {
+          // Could navigate to event details if needed
+        }}
+      />
     );
   };
 
+  // Don't render anything if user is not authenticated
+  if (!authData) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome, Member!</Text>
-      {renderEventDetails()}
-      <View style={styles.navigationButton}>
-        <Button
-          title="View My Participation History"
-          onPress={() => navigation.navigate('MyParticipation')}
-        />
-      </View>
-      <View style={styles.navigationButton}>
-        <Button
-          title="View My Payments"
-          onPress={() => navigation.navigate('Payments')}
-        />
-      </View>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.welcomeTitle}>Welcome back!</Text>
+          <Text style={styles.welcomeSubtitle}>
+            {authData.user.name || 'Member'}
+          </Text>
+        </View>
+
+        <View style={styles.eventSection}>
+          <Text style={styles.sectionTitle}>Today's Event</Text>
+          {renderEventDetails()}
+        </View>
+
+        <View style={styles.navigationSection}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          
+          <Card variant="elevated" style={styles.actionCard}>
+            <Button
+              title="View My Participation History"
+              onPress={() => navigation.navigate('MyParticipation')}
+              variant="outline"
+              style={styles.actionButton}
+            />
+          </Card>
+
+          <Card variant="elevated" style={styles.actionCard}>
+            <Button
+              title="View My Payments"
+              onPress={() => navigation.navigate('Payments')}
+              variant="outline"
+              style={styles.actionButton}
+            />
+          </Card>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: SPACING.md,
+  },
+  center: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  eventContainer: {
-    marginTop: 20,
-    padding: 20,
-    borderRadius: 10,
-    backgroundColor: '#f0f0f0',
+  header: {
     alignItems: 'center',
+    marginBottom: SPACING.xl,
+    paddingTop: SPACING.md,
   },
-  eventTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  welcomeTitle: {
+    fontSize: TYPOGRAPHY['2xl'],
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
   },
-  detailText: {
-    fontSize: 16,
-    marginBottom: 5,
+  welcomeSubtitle: {
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.textSecondary,
   },
-  noEventText: {
-    fontSize: 18,
-    color: 'gray',
-    marginTop: 20,
+  eventSection: {
+    marginBottom: SPACING.xl,
+  },
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.lg,
+    fontWeight: TYPOGRAPHY.semibold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+  },
+  loadingCard: {
+    marginBottom: SPACING.lg,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: SPACING.lg,
+  },
+  loadingText: {
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.textSecondary,
+  },
+  errorCard: {
+    marginBottom: SPACING.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.error,
   },
   errorText: {
-    fontSize: 18,
-    color: 'red',
-    marginTop: 20,
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.error,
+    textAlign: 'center',
+    padding: SPACING.md,
   },
-  logoutButton: {
-    marginTop: 20,
+  navigationSection: {
+    marginTop: SPACING.md,
   },
-  navigationButton: {
-    marginTop: 20,
+  actionCard: {
+    marginBottom: SPACING.md,
+  },
+  actionButton: {
+    width: '100%',
   },
 });
 

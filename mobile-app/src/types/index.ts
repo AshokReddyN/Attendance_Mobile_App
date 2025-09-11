@@ -27,6 +27,13 @@ export interface MemberMonthlyPayment {
   status: 'Paid' | 'Unpaid';
 }
 
+
+export interface UserMonthlyPayment {
+  paymentStatus: 'Paid' | 'Unpaid';
+  totalAmount: number;
+  month: string;
+}
+
 export interface EventParticipant {
   optedInAt: string | number | Date;
   memberId: string;

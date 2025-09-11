@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/RootNavigator';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Input, Card } from '../components';
+import { COLORS, TYPOGRAPHY, SPACING } from '../constants/theme';
 
-type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+// Define the auth navigation type
+type AuthStackParamList = {
+  Login: undefined;
+  Registration: undefined;
+};
+
+type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 const LoginScreen = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
@@ -17,6 +24,11 @@ const LoginScreen = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -27,76 +39,136 @@ const LoginScreen = () => {
       console.error('Login failed:', err);
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(message);
-      console.error('Login failed:', err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <>
-          <Button title="Login" onPress={handleLogin} disabled={loading} />
-          <TouchableOpacity onPress={() => navigation.navigate('Registration')}>
-            <Text style={styles.signupText}>Don't have an account? Sign Up</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </View>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to your account</Text>
+          </View>
+
+          <Card variant="elevated" style={styles.formCard}>
+            <Input
+              label="Email Address"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoComplete="password"
+            />
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <Button
+              title="Sign In"
+              onPress={handleLogin}
+              loading={loading}
+              disabled={loading}
+              style={styles.loginButton}
+            />
+          </Card>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Registration')}>
+              <Text style={styles.signupLink}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  signupText: {
-    color: '#007bff',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xl,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: SPACING['2xl'],
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY['3xl'],
+    fontWeight: TYPOGRAPHY.bold as any,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
     textAlign: 'center',
-    marginBottom: 30,
   },
-  input: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
+  subtitle: {
+    fontSize: TYPOGRAPHY.lg,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  formCard: {
+    marginBottom: SPACING.xl,
+  },
+  errorContainer: {
+    backgroundColor: COLORS.error + '10',
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginBottom: SPACING.md,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.error,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: TYPOGRAPHY.sm,
+    textAlign: 'center',
+  },
+  loginButton: {
+    marginTop: SPACING.sm,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.textSecondary,
+  },
+  signupLink: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.semibold as any,
   },
 });
 

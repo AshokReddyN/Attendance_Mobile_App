@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../context/AuthContext';
+import { navigationTheme, screenOptions } from '../constants/navigationTheme';
 
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -16,16 +17,23 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const AuthNavigator = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      ...screenOptions,
+      headerShown: false,
+    }}
+  >
     <Stack.Screen
       name="Login"
       component={LoginScreen}
-      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="Registration"
       component={RegistrationScreen}
-      options={{ title: 'Create Account' }}
+      options={{ 
+        headerShown: true,
+        title: 'Create Account',
+      }}
     />
   </Stack.Navigator>
 );
@@ -38,7 +46,12 @@ const RootNavigator = () => {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{
+        ...screenOptions,
+        headerShown: false,
+      }}
+    >
       {authData ? (
         // User is logged in, show the main app navigator
         <Stack.Screen name="App" component={AppNavigator} />
